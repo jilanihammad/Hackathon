@@ -227,6 +227,154 @@ const mockPeerComparison = [
   },
 ]
 
+const mockCustomerReviewsByFeature = {
+  "Sound Quality": {
+    searchTerms: ["sound quality", "audio", "bass", "treble", "clarity", "crisp", "clear sound"],
+    reviews: [
+      {
+        id: 1,
+        text: "Amazing sound quality, best I've heard in this price range",
+        rating: 5,
+        sentiment: "positive",
+        verified: true,
+        date: "2024-01-15",
+      },
+      {
+        id: 2,
+        text: "The audio is crystal clear, especially the bass response",
+        rating: 5,
+        sentiment: "positive",
+        verified: true,
+        date: "2024-01-12",
+      },
+      {
+        id: 3,
+        text: "Sound quality could be better, feels a bit muffled",
+        rating: 3,
+        sentiment: "negative",
+        verified: true,
+        date: "2024-01-10",
+      },
+    ],
+  },
+  "Battery Life": {
+    searchTerms: ["battery", "battery life", "charge", "charging", "power", "lasting"],
+    reviews: [
+      {
+        id: 4,
+        text: "Battery life is incredible, lasts all day",
+        rating: 5,
+        sentiment: "positive",
+        verified: true,
+        date: "2024-01-14",
+      },
+      {
+        id: 5,
+        text: "Love the quick charge feature, very convenient",
+        rating: 4,
+        sentiment: "positive",
+        verified: true,
+        date: "2024-01-11",
+      },
+      {
+        id: 6,
+        text: "Battery drains faster than expected during calls",
+        rating: 2,
+        sentiment: "negative",
+        verified: true,
+        date: "2024-01-09",
+      },
+    ],
+  },
+  Comfort: {
+    searchTerms: ["comfort", "comfortable", "fit", "ear", "padding", "ergonomic"],
+    reviews: [
+      {
+        id: 7,
+        text: "Very comfortable for long listening sessions",
+        rating: 4,
+        sentiment: "positive",
+        verified: true,
+        date: "2024-01-13",
+      },
+      {
+        id: 8,
+        text: "Fits perfectly, no ear fatigue after hours of use",
+        rating: 5,
+        sentiment: "positive",
+        verified: true,
+        date: "2024-01-08",
+      },
+      {
+        id: 9,
+        text: "Too tight on my head, becomes uncomfortable after 30 minutes",
+        rating: 2,
+        sentiment: "negative",
+        verified: true,
+        date: "2024-01-07",
+      },
+    ],
+  },
+  "Touch Controls": {
+    searchTerms: ["touch controls", "controls", "buttons", "touch", "gestures", "interface"],
+    reviews: [
+      {
+        id: 10,
+        text: "Touch controls are too sensitive, constantly pausing music",
+        rating: 2,
+        sentiment: "negative",
+        verified: true,
+        date: "2024-01-06",
+      },
+      {
+        id: 11,
+        text: "Controls are intuitive once you get used to them",
+        rating: 4,
+        sentiment: "positive",
+        verified: true,
+        date: "2024-01-05",
+      },
+      {
+        id: 12,
+        text: "Wish there were physical buttons instead of touch",
+        rating: 3,
+        sentiment: "negative",
+        verified: true,
+        date: "2024-01-04",
+      },
+    ],
+  },
+  "Build Quality": {
+    searchTerms: ["build quality", "construction", "materials", "durability", "solid", "sturdy"],
+    reviews: [
+      {
+        id: 13,
+        text: "Solid build quality, feels premium",
+        rating: 5,
+        sentiment: "positive",
+        verified: true,
+        date: "2024-01-03",
+      },
+      {
+        id: 14,
+        text: "Materials feel cheap for the price point",
+        rating: 2,
+        sentiment: "negative",
+        verified: true,
+        date: "2024-01-02",
+      },
+      {
+        id: 15,
+        text: "Well constructed, should last for years",
+        rating: 4,
+        sentiment: "positive",
+        verified: true,
+        date: "2024-01-01",
+      },
+    ],
+  },
+}
+
 export default function ProductInsightsDashboard() {
   // State with localStorage persistence
   const [selectedCategory, setSelectedCategory] = useState("")
@@ -236,6 +384,7 @@ export default function ProductInsightsDashboard() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [apiKey, setApiKey] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+  const [selectedFeatureFilter, setSelectedFeatureFilter] = useState("all")
 
   // Load saved filters from localStorage on component mount
   useEffect(() => {
@@ -865,44 +1014,151 @@ export default function ProductInsightsDashboard() {
             <Card>
               <CardHeader>
                 <CardTitle>Voice of Customer Insights</CardTitle>
-                <CardDescription>Direct customer feedback and quotes</CardDescription>
+                <CardDescription>Direct customer feedback and quotes filtered by product features</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <div className="space-y-4">
-                    <h3 className="font-semibold text-green-600 flex items-center">
-                      <ThumbsUp className="h-4 w-4 mr-2" />
-                      Positive Feedback
-                    </h3>
-                    {[
-                      "Amazing sound quality, best I've heard in this price range",
-                      "Battery life is incredible, lasts all day",
-                      "Love the quick charge feature, very convenient",
-                    ].map((quote, index) => (
-                      <div key={index} className="bg-green-50 border-l-4 border-green-400 p-4">
-                        <p className="text-sm italic">"{quote}"</p>
-                        <p className="text-xs text-gray-500 mt-2">★★★★★ Verified Purchase</p>
-                      </div>
-                    ))}
-                  </div>
-
-                  <div className="space-y-4">
-                    <h3 className="font-semibold text-red-600 flex items-center">
-                      <ThumbsDown className="h-4 w-4 mr-2" />
-                      Areas for Improvement
-                    </h3>
-                    {[
-                      "Touch controls are too sensitive, constantly pausing music",
-                      "Wish they had active noise cancellation like competitors",
-                      "Case is too bulky for pocket carry",
-                    ].map((quote, index) => (
-                      <div key={index} className="bg-red-50 border-l-4 border-red-400 p-4">
-                        <p className="text-sm italic">"{quote}"</p>
-                        <p className="text-xs text-gray-500 mt-2">★★★☆☆ Verified Purchase</p>
-                      </div>
-                    ))}
-                  </div>
+                <div className="mb-6">
+                  <Label htmlFor="feature-filter" className="text-sm font-medium mb-2 block">
+                    Filter by Feature
+                  </Label>
+                  <Select value={selectedFeatureFilter} onValueChange={setSelectedFeatureFilter}>
+                    <SelectTrigger className="w-full md:w-64">
+                      <SelectValue placeholder="All Features" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Features</SelectItem>
+                      {Object.keys(mockCustomerReviewsByFeature).map((feature) => (
+                        <SelectItem key={feature} value={feature}>
+                          {feature}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
+
+                {selectedFeatureFilter && selectedFeatureFilter !== "all" ? (
+                  <div className="space-y-6">
+                    {/* Search Terms Section */}
+                    <Card className="bg-blue-50 border-blue-200">
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-lg text-blue-800">
+                          Search Terms for "{selectedFeatureFilter}"
+                        </CardTitle>
+                        <CardDescription className="text-blue-600">
+                          {mockCustomerReviewsByFeature[selectedFeatureFilter].searchTerms.length} related search terms
+                          identified
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="flex flex-wrap gap-2">
+                          {mockCustomerReviewsByFeature[selectedFeatureFilter].searchTerms.map((term, index) => (
+                            <Badge key={index} variant="outline" className="bg-white text-blue-700 border-blue-300">
+                              {term}
+                            </Badge>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    {/* Customer Reviews Section */}
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="flex items-center justify-between">
+                          <span>Customer Reviews - {selectedFeatureFilter}</span>
+                          <Badge variant="outline">
+                            {mockCustomerReviewsByFeature[selectedFeatureFilter].reviews.length} reviews
+                          </Badge>
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-4">
+                          {mockCustomerReviewsByFeature[selectedFeatureFilter].reviews.map((review) => (
+                            <div
+                              key={review.id}
+                              className={`p-4 rounded-lg border-l-4 ${
+                                review.sentiment === "positive"
+                                  ? "bg-green-50 border-green-400"
+                                  : "bg-red-50 border-red-400"
+                              }`}
+                            >
+                              <div className="flex items-start justify-between mb-2">
+                                <div className="flex items-center space-x-2">
+                                  <div className="flex">
+                                    {[...Array(5)].map((_, i) => (
+                                      <span
+                                        key={i}
+                                        className={`text-sm ${i < review.rating ? "text-yellow-400" : "text-gray-300"}`}
+                                      >
+                                        ★
+                                      </span>
+                                    ))}
+                                  </div>
+                                  {review.verified && (
+                                    <Badge variant="outline" className="text-xs">
+                                      Verified Purchase
+                                    </Badge>
+                                  )}
+                                </div>
+                                <span className="text-xs text-gray-500">{review.date}</span>
+                              </div>
+                              <p className="text-sm italic mb-2">"{review.text}"</p>
+                              <div className="flex items-center space-x-2">
+                                {review.sentiment === "positive" ? (
+                                  <ThumbsUp className="h-4 w-4 text-green-600" />
+                                ) : (
+                                  <ThumbsDown className="h-4 w-4 text-red-600" />
+                                )}
+                                <span
+                                  className={`text-xs font-medium ${
+                                    review.sentiment === "positive" ? "text-green-600" : "text-red-600"
+                                  }`}
+                                >
+                                  {review.sentiment === "positive" ? "Positive" : "Negative"} sentiment
+                                </span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div className="space-y-4">
+                      <h3 className="font-semibold text-green-600 flex items-center">
+                        <ThumbsUp className="h-4 w-4 mr-2" />
+                        Positive Feedback
+                      </h3>
+                      {[
+                        "Amazing sound quality, best I've heard in this price range",
+                        "Battery life is incredible, lasts all day",
+                        "Love the quick charge feature, very convenient",
+                      ].map((quote, index) => (
+                        <div key={index} className="bg-green-50 border-l-4 border-green-400 p-4">
+                          <p className="text-sm italic">"{quote}"</p>
+                          <p className="text-xs text-gray-500 mt-2">★★★★★ Verified Purchase</p>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="space-y-4">
+                      <h3 className="font-semibold text-red-600 flex items-center">
+                        <ThumbsDown className="h-4 w-4 mr-2" />
+                        Areas for Improvement
+                      </h3>
+                      {[
+                        "Touch controls are too sensitive, constantly pausing music",
+                        "Wish they had active noise cancellation like competitors",
+                        "Case is too bulky for pocket carry",
+                      ].map((quote, index) => (
+                        <div key={index} className="bg-red-50 border-l-4 border-red-400 p-4">
+                          <p className="text-sm italic">"{quote}"</p>
+                          <p className="text-xs text-gray-500 mt-2">★★★☆☆ Verified Purchase</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
