@@ -1,14 +1,15 @@
-"use client"
+"use client" // This directive tells Next.js to run this code in the browser (client-side), not on the server.
 
-import type React from "react"
-
-import { useState, useEffect } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Progress } from "@/components/ui/progress"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+// --- Imports ---
+// These bring in libraries and components needed for the dashboard.
+import type React from "react" // Type definitions for React to help with code reliability (optional but useful for TypeScript).
+import { useState, useEffect } from "react" // React hooks: useState manages dynamic data, useEffect runs code at specific times.
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card" // UI components for boxed content sections.
+import { Button } from "@/components/ui/button" // A reusable button component.
+import { Badge } from "@/components/ui/badge" // Small labels for highlighting info (e.g., "high priority").
+import { Progress } from "@/components/ui/progress" // A progress bar for visual percentages.
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs" // Components for tabbed navigation.
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select" // Dropdown menu components.
 import {
   Dialog,
   DialogContent,
@@ -17,9 +18,9 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+} from "@/components/ui/dialog" // Pop-up dialog components (e.g., for data integration).
+import { Input } from "@/components/ui/input" // Text input fields (e.g., for API keys or file uploads).
+import { Label } from "@/components/ui/label" // Labels to describe inputs.
 import {
   DollarSign,
   Target,
@@ -38,14 +39,16 @@ import {
   RefreshCw,
   FileSpreadsheet,
   BarChart,
-} from "lucide-react"
+} from "lucide-react" // Icons to enhance the UI visually.
 
-// Mock data - replace with real API calls
+// --- Mock Data ---
+// Fake data to simulate real customer feedback and product info. Replace with API calls or real data later.
 const mockProducts = [
   { id: "apb-001", name: "APB Wireless Headphones Pro", category: "Audio", asin: "B08XYZ123" },
   { id: "apb-002", name: "APB Smart Watch Series 3", category: "Wearables", asin: "B09ABC456" },
   { id: "comp-001", name: "Sony WH-1000XM5", category: "Audio", asin: "B09DEF789" },
 ]
+// **Edit Here:** Add more products by following this format: { id, name, category, asin }.
 
 const mockFeatureRecommendations = [
   {
@@ -56,8 +59,8 @@ const mockFeatureRecommendations = [
     sentiment: 0.85,
     mentions: 1247,
     costEstimate: "$2.5M",
-    impact: "high",
-    customerQuote: "I wish these had better noise cancellation like the Sony ones",
+    impact: "140%",
+    customerQuote: "I LOVE the noise cancellation feature at this price point!",
     confidence: 92,
   },
   {
@@ -67,8 +70,8 @@ const mockFeatureRecommendations = [
     priority: "Add feature",
     sentiment: 0.72,
     mentions: 892,
-    costEstimate: "$1.2M",
-    impact: "medium",
+    costEstimate: "$2.8M",
+    impact: "125%",
     customerQuote: "Would love wireless charging for convenience",
     confidence: 78,
   },
@@ -79,24 +82,25 @@ const mockFeatureRecommendations = [
     priority: "Ambiguous",
     sentiment: -0.45,
     mentions: 2156,
-    costEstimate: "$800K",
-    impact: "high",
-    customerQuote: "Touch controls are too sensitive and frustrating",
+    costEstimate: "$3.2M",
+    impact: "109%",
+    customerQuote: "Touch controls are too sensitive and a bit frustrating",
     confidence: 89,
   },
   {
     id: 4,
-    feature: "Bulky Design",
+    feature: "Metallic Body",
     type: "remove",
     priority: "Remove feature",
     sentiment: -0.62,
     mentions: 567,
-    costEstimate: "$1.8M",
-    impact: "medium",
-    customerQuote: "These are too bulky compared to competitors",
+    costEstimate: "$3.8M",
+    impact: "92%",
+    customerQuote: "These are too heavy compared to my Beats",
     confidence: 71,
   },
 ]
+// **Edit Here:** Add new recommendations by copying this structure and updating values.
 
 const mockSentimentData = {
   overall: 0.68,
@@ -108,6 +112,7 @@ const mockSentimentData = {
     Price: 0.38,
   },
 }
+// **Edit Here:** Update sentiment scores (0 to 1) or add new features.
 
 const mockPeerComparison = [
   {
@@ -226,6 +231,7 @@ const mockPeerComparison = [
     customerDemand: "high",
   },
 ]
+// **Edit Here:** Add new features or competitors by copying this structure.
 
 const mockCustomerReviewsByFeature = {
   "Sound Quality": {
@@ -374,6 +380,7 @@ const mockCustomerReviewsByFeature = {
     ],
   },
 }
+// **Edit Here:** Add new features or reviews by copying this structure.
 
 const mockSentimentTrends = {
   "Sound Quality": [
@@ -422,6 +429,7 @@ const mockSentimentTrends = {
     { month: "2024-01", mentions: 234 },
   ],
 }
+// **Edit Here:** Add new features or time periods for trends.
 
 const featureColors = {
   "Sound Quality": "#3B82F6",
@@ -430,43 +438,53 @@ const featureColors = {
   "Touch Controls": "#EF4444",
   "Build Quality": "#8B5CF6",
 }
+// **Edit Here:** Add new features and their colors for the trend chart.
 
+// --- Main Dashboard Component ---
 export default function ProductInsightsDashboard() {
-  // State with localStorage persistence
-  const [selectedCategory, setSelectedCategory] = useState("")
-  const [priorityFilter, setPriorityFilter] = useState("all")
-  const [selectedPeers, setSelectedPeers] = useState("")
-  const [isIntegrationDialogOpen, setIsIntegrationDialogOpen] = useState(false)
-  const [selectedFile, setSelectedFile] = useState<File | null>(null)
-  const [apiKey, setApiKey] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
-  const [selectedFeatureFilter, setSelectedFeatureFilter] = useState("all")
-  const [selectedSourceFilter, setSelectedSourceFilter] = useState("all")
-  const [selectedPeerFilter, setSelectedPeerFilter] = useState("all")
-  const [selectedSentimentFilter, setSelectedSentimentFilter] = useState("all")
+  // --- State Variables ---
+  // These hold data that changes based on user interaction, persisted with localStorage.
+  const [selectedCategory, setSelectedCategory] = useState("") // Tracks the selected product category.
+  const [priorityFilter, setPriorityFilter] = useState("all") // Filters recommendations by priority.
+  const [selectedPeers, setSelectedPeers] = useState("") // Tracks the selected peer group for comparison.
+  const [isIntegrationDialogOpen, setIsIntegrationDialogOpen] = useState(false) // Controls visibility of the integration dialog.
+  const [selectedFile, setSelectedFile] = useState<File | null>(null) // Stores the file selected for upload.
+  const [apiKey, setApiKey] = useState("") // Stores the API key entered by the user.
+  const [isLoading, setIsLoading] = useState(false) // Tracks if an operation (e.g., integration) is in progress.
+  const [selectedFeatureFilter, setSelectedFeatureFilter] = useState("all") // Filters reviews by feature.
+  const [selectedSourceFilter, setSelectedSourceFilter] = useState("all") // Filters reviews by source.
+  const [selectedPeerFilter, setSelectedPeerFilter] = useState("all") // Filters peer comparison data.
+  const [selectedSentimentFilter, setSelectedSentimentFilter] = useState("all") // Filters sentiment analysis data.
 
-  // Load saved filters from localStorage on component mount
+  // --- Load Saved Filters ---
+  // Restores user selections from localStorage when the dashboard loads.
   useEffect(() => {
     const savedCategory = localStorage.getItem("selectedCategory")
     const savedPriority = localStorage.getItem("priorityFilter")
     const savedPeers = localStorage.getItem("selectedPeers")
-
     if (savedCategory) setSelectedCategory(savedCategory)
     if (savedPriority) setPriorityFilter(savedPriority)
     if (savedPeers) setSelectedPeers(savedPeers)
-  }, [])
+  }, []) // Empty array means this runs once when the component mounts.
 
-  // Save filters to localStorage whenever they change
+  // --- Save Filters ---
+  // Saves user selections to localStorage whenever they change.
   useEffect(() => {
     localStorage.setItem("selectedCategory", selectedCategory)
     localStorage.setItem("priorityFilter", priorityFilter)
     localStorage.setItem("selectedPeers", selectedPeers)
-  }, [selectedCategory, priorityFilter, selectedPeers])
+  }, [selectedCategory, priorityFilter, selectedPeers]) // Runs when these values change.
 
+  // --- Filter Recommendations ---
+  // Filters the feature recommendations based on the selected priority.
   const filteredRecommendations = mockFeatureRecommendations.filter(
     (rec) => priorityFilter === "all" || rec.priority === priorityFilter,
   )
 
+  // --- Helper Functions ---
+  // These handle styling and logic for the dashboard.
+
+  // Returns a color class for priority badges based on the priority type.
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case "Add feature":
@@ -478,8 +496,10 @@ export default function ProductInsightsDashboard() {
       default:
         return "bg-gray-100 text-gray-800 border-gray-200"
     }
+    // **Edit Here:** Add more priority types and colors if needed.
   }
 
+  // Returns an icon based on the recommendation type.
   const getTypeIcon = (type: string) => {
     switch (type) {
       case "add":
@@ -491,31 +511,37 @@ export default function ProductInsightsDashboard() {
       default:
         return <Lightbulb className="h-4 w-4" />
     }
+    // **Edit Here:** Add new types and icons as needed.
   }
 
+  // Returns a text color class based on sentiment score.
   const getSentimentColor = (sentiment: number) => {
     if (sentiment > 0.6) return "text-green-600"
     if (sentiment > 0.2) return "text-yellow-600"
     return "text-red-600"
+    // **Edit Here:** Adjust thresholds (0.6, 0.2) to change color ranges.
   }
 
+  // Updates the selected file when a user uploads one.
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setSelectedFile(e.target.files[0])
     }
   }
 
+  // Simulates submitting an integration (API key or file upload).
   const handleIntegrationSubmit = () => {
-    setIsLoading(true)
-    // Simulate API call
+    setIsLoading(true) // Show loading state.
+    // Fake delay to mimic an API call.
     setTimeout(() => {
       setIsLoading(false)
-      setIsIntegrationDialogOpen(false)
-      // Show success notification or update UI
-      alert("Integration successful!")
-    }, 2000)
+      setIsIntegrationDialogOpen(false) // Close the dialog.
+      alert("Integration successful!") // Notify the user.
+    }, 2000) // 2-second delay.
+    // **Edit Here:** Replace with real API integration logic.
   }
 
+  // Resets all filters to their default values and clears localStorage.
   const resetFilters = () => {
     setSelectedCategory("")
     setPriorityFilter("all")
@@ -531,20 +557,22 @@ export default function ProductInsightsDashboard() {
     localStorage.removeItem("selectedSentimentFilter")
   }
 
+  // --- Sentiment Trend Chart Component ---
+  // Creates a line chart showing feature mentions over time.
   const SentimentTrendChart = () => {
-    const chartWidth = 600
-    const chartHeight = 300
-    const padding = 60
+    const chartWidth = 600 // Width of the chart in pixels.
+    const chartHeight = 300 // Height of the chart.
+    const padding = 60 // Space around the chart for labels and axes.
 
-    const allMonths = mockSentimentTrends["Sound Quality"].map((d) => d.month)
+    const allMonths = mockSentimentTrends["Sound Quality"].map((d) => d.month) // List of months from data.
     const maxMentions = Math.max(
       ...Object.values(mockSentimentTrends)
         .flat()
         .map((d) => d.mentions),
-    )
+    ) // Highest mention count for scaling the y-axis.
 
-    const getX = (index: number) => padding + (index * (chartWidth - 2 * padding)) / (allMonths.length - 1)
-    const getY = (mentions: number) => chartHeight - padding - (mentions / maxMentions) * (chartHeight - 2 * padding)
+    const getX = (index: number) => padding + (index * (chartWidth - 2 * padding)) / (allMonths.length - 1) // Calculates x-position for data points.
+    const getY = (mentions: number) => chartHeight - padding - (mentions / maxMentions) * (chartHeight - 2 * padding) // Calculates y-position.
 
     return (
       <div className="w-full overflow-x-auto">
@@ -587,7 +615,6 @@ export default function ProductInsightsDashboard() {
             const pathData = data
               .map((d, index) => `${index === 0 ? "M" : "L"} ${getX(index)} ${getY(d.mentions)}`)
               .join(" ")
-
             return (
               <g key={feature}>
                 <path d={pathData} fill="none" stroke={featureColors[feature]} strokeWidth="2" />
@@ -598,7 +625,7 @@ export default function ProductInsightsDashboard() {
             )
           })}
 
-          {/* Axis labels */}
+          {/* Axis titles */}
           <text x={chartWidth / 2} y={chartHeight - 10} textAnchor="middle" fontSize="14" fill="#374151">
             Time Period
           </text>
@@ -625,11 +652,14 @@ export default function ProductInsightsDashboard() {
         </div>
       </div>
     )
+    // **Edit Here:** Adjust chartWidth or chartHeight to resize the chart.
   }
 
+  // --- Main Dashboard UI ---
+  // Defines the layout and structure of the dashboard.
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
+      {/* Header Section */}
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
@@ -638,6 +668,7 @@ export default function ProductInsightsDashboard() {
               <p className="text-gray-600 mt-1">AI-powered customer feedback analysis for product development</p>
             </div>
             <div className="flex space-x-3">
+              {/* Integration Dialog */}
               <Dialog open={isIntegrationDialogOpen} onOpenChange={setIsIntegrationDialogOpen}>
                 <DialogTrigger asChild>
                   <Button variant="outline">
@@ -717,7 +748,7 @@ export default function ProductInsightsDashboard() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Filters */}
+        {/* Filters Section */}
         <Card className="mb-8">
           <CardHeader>
             <CardTitle className="flex items-center">
@@ -736,6 +767,7 @@ export default function ProductInsightsDashboard() {
                   <SelectItem value="audio">Audio</SelectItem>
                   <SelectItem value="wearables">Wearables</SelectItem>
                   <SelectItem value="smart-home">Smart Home</SelectItem>
+                  {/* **Edit Here:** Add more categories by copying <SelectItem> tags. */}
                 </SelectContent>
               </Select>
 
@@ -748,6 +780,7 @@ export default function ProductInsightsDashboard() {
                   <SelectItem value="B08XYZ123">B08XYZ123</SelectItem>
                   <SelectItem value="B09ABC456">B09ABC456</SelectItem>
                   <SelectItem value="B09DEF789">B09DEF789</SelectItem>
+                  {/* **Edit Here:** Add more ASINs from mockProducts. */}
                 </SelectContent>
               </Select>
 
@@ -759,6 +792,7 @@ export default function ProductInsightsDashboard() {
                   <SelectItem value="cmt">CMT</SelectItem>
                   <SelectItem value="wide">Wide</SelectItem>
                   <SelectItem value="narrow">Narrow</SelectItem>
+                  {/* **Edit Here:** Add more peer groups. */}
                 </SelectContent>
               </Select>
 
@@ -775,14 +809,14 @@ export default function ProductInsightsDashboard() {
           </CardContent>
         </Card>
 
-        {/* Key Metrics */}
+        {/* Key Metrics Section */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <Card>
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Overall Sentiment</p>
-                  <p className="text-2xl font-bold text-green-600">+68%</p>
+                  <p className="text-sm font-medium text-gray-600">Avg Star Ratings</p>
+                  <p className="text-2xl font-bold text-green-600">4.3</p>
                 </div>
                 <div className="h-12 w-12 bg-green-100 rounded-lg flex items-center justify-center">
                   <ThumbsUp className="h-6 w-6 text-green-600" />
@@ -826,16 +860,17 @@ export default function ProductInsightsDashboard() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Est. Revenue Impact</p>
+                  <p className="text-sm font-medium text-gray-600">Potential iGMS</p>
                   <p className="text-2xl font-bold text-green-600">$12.4M</p>
                 </div>
                 <div className="h-12 w-12 bg-green-100 rounded-lg flex items-center justify-center">
                   <DollarSign className="h-6 w-6 text-green-600" />
                 </div>
               </div>
-              <p className="text-xs text-gray-500 mt-2">From top 3 recommendations</p>
+              <p className="text-xs text-gray-500 mt-2">From 7 feature additions</p>
             </CardContent>
           </Card>
+          {/* **Edit Here:** Add more metric cards by copying this structure and updating values/icons. */}
         </div>
 
         {/* Main Content Tabs */}
@@ -878,11 +913,8 @@ export default function ProductInsightsDashboard() {
 
                       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
                         <div className="text-center p-3 bg-gray-50 rounded-lg">
-                          <p className="text-sm text-gray-600">Sentiment Score</p>
-                          <p className={`text-lg font-bold ${getSentimentColor(rec.sentiment)}`}>
-                            {rec.sentiment > 0 ? "+" : ""}
-                            {(rec.sentiment * 100).toFixed(0)}%
-                          </p>
+                          <p className="text-sm text-gray-600">Incremental Revenue</p>
+                          <p className="text-lg font-bold text-green-600">$3.5M/year</p>
                         </div>
                         <div className="text-center p-3 bg-gray-50 rounded-lg">
                           <p className="text-sm text-gray-600">Mentions</p>
@@ -893,7 +925,7 @@ export default function ProductInsightsDashboard() {
                           <p className="text-lg font-bold text-orange-600">{rec.costEstimate}</p>
                         </div>
                         <div className="text-center p-3 bg-gray-50 rounded-lg">
-                          <p className="text-sm text-gray-600">Impact</p>
+                          <p className="text-sm text-gray-600">ROI</p>
                           <p
                             className={`text-lg font-bold ${rec.impact === "high" ? "text-green-600" : "text-yellow-600"}`}
                           >
@@ -957,6 +989,7 @@ export default function ProductInsightsDashboard() {
                       <SelectItem value="cmts">CMTs</SelectItem>
                       <SelectItem value="wide">Wide Peers</SelectItem>
                       <SelectItem value="narrow">Narrow Peers</SelectItem>
+                      {/* **Edit Here:** Add more peer group options. */}
                     </SelectContent>
                   </Select>
                 </div>
@@ -972,7 +1005,7 @@ export default function ProductInsightsDashboard() {
                           {selectedPeers ? `${selectedPeers.toUpperCase()} Peers` : "All Peers"}
                         </th>
                         <th className="text-center p-3 bg-gray-50">Customer Demand</th>
-                        <th className="text-center p-3 bg-gray-50">Sentiment</th>
+                        <th className="text-center p-3 bg-gray-50">Quality Score</th>
                         <th className="text-center p-3 bg-gray-50">Action</th>
                       </tr>
                     </thead>
@@ -1064,7 +1097,7 @@ export default function ProductInsightsDashboard() {
           <TabsContent value="sentiment" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Sentiment Analysis</CardTitle>
+                <CardTitle>Feature Quality Score Breakdown</CardTitle>
                 <CardDescription>Customer sentiment analysis across different sources and features</CardDescription>
                 <div className="pt-4">
                   <Label htmlFor="sentiment-filter" className="text-sm font-medium mb-2 block">
@@ -1080,6 +1113,7 @@ export default function ProductInsightsDashboard() {
                       <SelectItem value="cmts">CMTs</SelectItem>
                       <SelectItem value="wide-peers">Wide Peers</SelectItem>
                       <SelectItem value="narrow-peers">Narrow Peers</SelectItem>
+                      {/* **Edit Here:** Add more source options. */}
                     </SelectContent>
                   </Select>
                 </div>
@@ -1089,7 +1123,7 @@ export default function ProductInsightsDashboard() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <Card>
                 <CardHeader>
-                  <CardTitle>Feature Sentiment Breakdown</CardTitle>
+                  <CardTitle>Feature Quality Score Breakdown</CardTitle>
                   <CardDescription>
                     Customer satisfaction by feature category
                     {selectedSentimentFilter !== "all" && (
@@ -1118,7 +1152,7 @@ export default function ProductInsightsDashboard() {
 
               <Card>
                 <CardHeader>
-                  <CardTitle>Sentiment Trends Over Time</CardTitle>
+                  <CardTitle>Feature Trends Over Time</CardTitle>
                   <CardDescription>
                     Feature mention trends by month
                     {selectedSentimentFilter !== "all" && (
@@ -1148,8 +1182,8 @@ export default function ProductInsightsDashboard() {
                     <thead>
                       <tr className="border-b">
                         <th className="text-left p-3">Feature</th>
-                        <th className="text-left p-3">PCOGs</th>
-                        <th className="text-left p-3">Yearly GMS</th>
+                        <th className="text-left p-3">iPCOGs/Year</th>
+                        <th className="text-left p-3">iGMS/Year</th>
                         <th className="text-left p-3">ROI</th>
                         <th className="text-left p-3">Confidence Level</th>
                       </tr>
@@ -1158,9 +1192,9 @@ export default function ProductInsightsDashboard() {
                       {filteredRecommendations.map((rec) => (
                         <tr key={rec.id} className="border-b hover:bg-gray-50">
                           <td className="p-3 font-medium">{rec.feature}</td>
-                          <td className="p-3">$12.50 per unit</td>
-                          <td className="p-3 text-green-600">$85 per unit</td>
-                          <td className="p-3 text-green-600 font-bold">168%</td>
+                          <td className="p-3">$1.8M</td>
+                          <td className="p-3 text-green-600">$3.5M</td>
+                          <td className="p-3 text-green-600 font-bold">194%</td>
                           <td className="p-3">
                             <Badge
                               variant="outline"
@@ -1220,6 +1254,7 @@ export default function ProductInsightsDashboard() {
                         <SelectItem value="cmts">CMTs</SelectItem>
                         <SelectItem value="wide-peers">Wide Peers</SelectItem>
                         <SelectItem value="narrow-peers">Narrow Peers</SelectItem>
+                        {/* **Edit Here:** Add more source options. */}
                       </SelectContent>
                     </Select>
                   </div>
