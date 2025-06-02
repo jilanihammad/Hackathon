@@ -375,6 +375,62 @@ const mockCustomerReviewsByFeature = {
   },
 }
 
+const mockSentimentTrends = {
+  "Sound Quality": [
+    { month: "2023-07", mentions: 245 },
+    { month: "2023-08", mentions: 312 },
+    { month: "2023-09", mentions: 289 },
+    { month: "2023-10", mentions: 356 },
+    { month: "2023-11", mentions: 423 },
+    { month: "2023-12", mentions: 398 },
+    { month: "2024-01", mentions: 467 },
+  ],
+  "Battery Life": [
+    { month: "2023-07", mentions: 189 },
+    { month: "2023-08", mentions: 234 },
+    { month: "2023-09", mentions: 267 },
+    { month: "2023-10", mentions: 298 },
+    { month: "2023-11", mentions: 334 },
+    { month: "2023-12", mentions: 356 },
+    { month: "2024-01", mentions: 389 },
+  ],
+  Comfort: [
+    { month: "2023-07", mentions: 156 },
+    { month: "2023-08", mentions: 178 },
+    { month: "2023-09", mentions: 203 },
+    { month: "2023-10", mentions: 234 },
+    { month: "2023-11", mentions: 267 },
+    { month: "2023-12", mentions: 289 },
+    { month: "2024-01", mentions: 312 },
+  ],
+  "Touch Controls": [
+    { month: "2023-07", mentions: 134 },
+    { month: "2023-08", mentions: 167 },
+    { month: "2023-09", mentions: 189 },
+    { month: "2023-10", mentions: 212 },
+    { month: "2023-11", mentions: 245 },
+    { month: "2023-12", mentions: 278 },
+    { month: "2024-01", mentions: 301 },
+  ],
+  "Build Quality": [
+    { month: "2023-07", mentions: 98 },
+    { month: "2023-08", mentions: 123 },
+    { month: "2023-09", mentions: 145 },
+    { month: "2023-10", mentions: 167 },
+    { month: "2023-11", mentions: 189 },
+    { month: "2023-12", mentions: 212 },
+    { month: "2024-01", mentions: 234 },
+  ],
+}
+
+const featureColors = {
+  "Sound Quality": "#3B82F6",
+  "Battery Life": "#10B981",
+  Comfort: "#F59E0B",
+  "Touch Controls": "#EF4444",
+  "Build Quality": "#8B5CF6",
+}
+
 export default function ProductInsightsDashboard() {
   // State with localStorage persistence
   const [selectedCategory, setSelectedCategory] = useState("")
@@ -385,6 +441,9 @@ export default function ProductInsightsDashboard() {
   const [apiKey, setApiKey] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [selectedFeatureFilter, setSelectedFeatureFilter] = useState("all")
+  const [selectedSourceFilter, setSelectedSourceFilter] = useState("all")
+  const [selectedPeerFilter, setSelectedPeerFilter] = useState("all")
+  const [selectedSentimentFilter, setSelectedSentimentFilter] = useState("all")
 
   // Load saved filters from localStorage on component mount
   useEffect(() => {
@@ -461,9 +520,111 @@ export default function ProductInsightsDashboard() {
     setSelectedCategory("")
     setPriorityFilter("all")
     setSelectedPeers("")
+    setSelectedSourceFilter("all")
+    setSelectedPeerFilter("all")
+    setSelectedSentimentFilter("all")
     localStorage.removeItem("selectedCategory")
     localStorage.removeItem("priorityFilter")
     localStorage.removeItem("selectedPeers")
+    localStorage.removeItem("selectedSourceFilter")
+    localStorage.removeItem("selectedPeerFilter")
+    localStorage.removeItem("selectedSentimentFilter")
+  }
+
+  const SentimentTrendChart = () => {
+    const chartWidth = 600
+    const chartHeight = 300
+    const padding = 60
+
+    const allMonths = mockSentimentTrends["Sound Quality"].map((d) => d.month)
+    const maxMentions = Math.max(
+      ...Object.values(mockSentimentTrends)
+        .flat()
+        .map((d) => d.mentions),
+    )
+
+    const getX = (index: number) => padding + (index * (chartWidth - 2 * padding)) / (allMonths.length - 1)
+    const getY = (mentions: number) => chartHeight - padding - (mentions / maxMentions) * (chartHeight - 2 * padding)
+
+    return (
+      <div className="w-full overflow-x-auto">
+        <svg width={chartWidth} height={chartHeight} className="border rounded">
+          {/* Grid lines */}
+          {[0, 1, 2, 3, 4].map((i) => {
+            const y = padding + (i * (chartHeight - 2 * padding)) / 4
+            return (
+              <line key={i} x1={padding} y1={y} x2={chartWidth - padding} y2={y} stroke="#E5E7EB" strokeWidth="1" />
+            )
+          })}
+
+          {/* Y-axis labels */}
+          {[0, 1, 2, 3, 4].map((i) => {
+            const value = Math.round((maxMentions * (4 - i)) / 4)
+            const y = padding + (i * (chartHeight - 2 * padding)) / 4
+            return (
+              <text key={i} x={padding - 10} y={y + 4} textAnchor="end" fontSize="12" fill="#6B7280">
+                {value}
+              </text>
+            )
+          })}
+
+          {/* X-axis labels */}
+          {allMonths.map((month, index) => (
+            <text
+              key={month}
+              x={getX(index)}
+              y={chartHeight - padding + 20}
+              textAnchor="middle"
+              fontSize="12"
+              fill="#6B7280"
+            >
+              {new Date(month + "-01").toLocaleDateString("en-US", { month: "short", year: "2-digit" })}
+            </text>
+          ))}
+
+          {/* Feature lines */}
+          {Object.entries(mockSentimentTrends).map(([feature, data]) => {
+            const pathData = data
+              .map((d, index) => `${index === 0 ? "M" : "L"} ${getX(index)} ${getY(d.mentions)}`)
+              .join(" ")
+
+            return (
+              <g key={feature}>
+                <path d={pathData} fill="none" stroke={featureColors[feature]} strokeWidth="2" />
+                {data.map((d, index) => (
+                  <circle key={index} cx={getX(index)} cy={getY(d.mentions)} r="4" fill={featureColors[feature]} />
+                ))}
+              </g>
+            )
+          })}
+
+          {/* Axis labels */}
+          <text x={chartWidth / 2} y={chartHeight - 10} textAnchor="middle" fontSize="14" fill="#374151">
+            Time Period
+          </text>
+          <text
+            x={20}
+            y={chartHeight / 2}
+            textAnchor="middle"
+            fontSize="14"
+            fill="#374151"
+            transform={`rotate(-90 20 ${chartHeight / 2})`}
+          >
+            Number of Mentions
+          </text>
+        </svg>
+
+        {/* Legend */}
+        <div className="flex flex-wrap gap-4 mt-4 justify-center">
+          {Object.entries(featureColors).map(([feature, color]) => (
+            <div key={feature} className="flex items-center gap-2">
+              <div className="w-4 h-4 rounded" style={{ backgroundColor: color }}></div>
+              <span className="text-sm">{feature}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -783,6 +944,22 @@ export default function ProductInsightsDashboard() {
                   Competitive Feature Analysis
                 </CardTitle>
                 <CardDescription>Compare your product features against top competitors in the market</CardDescription>
+                <div className="pt-4">
+                  <Label htmlFor="peer-filter" className="text-sm font-medium mb-2 block">
+                    Filter by Peer Group
+                  </Label>
+                  <Select value={selectedPeerFilter} onValueChange={setSelectedPeerFilter}>
+                    <SelectTrigger className="w-full md:w-64">
+                      <SelectValue placeholder="All Peer Groups" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Peer Groups</SelectItem>
+                      <SelectItem value="cmts">CMTs</SelectItem>
+                      <SelectItem value="wide">Wide Peers</SelectItem>
+                      <SelectItem value="narrow">Narrow Peers</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </CardHeader>
               <CardContent>
                 <div className="overflow-x-auto">
@@ -881,55 +1058,46 @@ export default function ProductInsightsDashboard() {
                 </div>
               </CardFooter>
             </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Feature Gap Analysis</CardTitle>
-                <CardDescription>Key features missing from your product compared to competitors</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {mockPeerComparison
-                    .filter((item) => !item.ourProduct && item.customerDemand === "high")
-                    .map((item, index) => {
-                      const peerType = selectedPeers || "cmt"
-                      const peerData = item.peers[peerType as keyof typeof item.peers] || []
-                      const adoptionRate = peerData.filter((peer) => peer.has).length / peerData.length
-
-                      return (
-                        <div key={index} className="flex items-center justify-between p-4 border rounded-lg">
-                          <div className="flex items-center gap-3">
-                            <div className="h-10 w-10 rounded-full bg-red-100 flex items-center justify-center">
-                              <AlertTriangle className="h-5 w-5 text-red-600" />
-                            </div>
-                            <div>
-                              <h4 className="font-medium">{item.feature}</h4>
-                              <p className="text-sm text-gray-500">
-                                {Math.round(adoptionRate * 100)}% of peers have this feature
-                              </p>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Badge className="bg-green-50 text-green-700 border-green-200">
-                              {item.customerDemand} demand
-                            </Badge>
-                            <Button size="sm">Add to Roadmap</Button>
-                          </div>
-                        </div>
-                      )
-                    })}
-                </div>
-              </CardContent>
-            </Card>
           </TabsContent>
 
           {/* Sentiment Analysis Tab */}
           <TabsContent value="sentiment" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Sentiment Analysis</CardTitle>
+                <CardDescription>Customer sentiment analysis across different sources and features</CardDescription>
+                <div className="pt-4">
+                  <Label htmlFor="sentiment-filter" className="text-sm font-medium mb-2 block">
+                    Filter by Source
+                  </Label>
+                  <Select value={selectedSentimentFilter} onValueChange={setSelectedSentimentFilter}>
+                    <SelectTrigger className="w-full md:w-64">
+                      <SelectValue placeholder="All Sources" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Sources</SelectItem>
+                      <SelectItem value="apb-asin">APB ASIN</SelectItem>
+                      <SelectItem value="cmts">CMTs</SelectItem>
+                      <SelectItem value="wide-peers">Wide Peers</SelectItem>
+                      <SelectItem value="narrow-peers">Narrow Peers</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </CardHeader>
+            </Card>
+
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <Card>
                 <CardHeader>
                   <CardTitle>Feature Sentiment Breakdown</CardTitle>
-                  <CardDescription>Customer satisfaction by feature category</CardDescription>
+                  <CardDescription>
+                    Customer satisfaction by feature category
+                    {selectedSentimentFilter !== "all" && (
+                      <span className="ml-2 text-blue-600">
+                        (Filtered by: {selectedSentimentFilter.replace("-", " ").toUpperCase()})
+                      </span>
+                    )}
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
@@ -950,17 +1118,18 @@ export default function ProductInsightsDashboard() {
 
               <Card>
                 <CardHeader>
-                  <CardTitle>Sentiment Trends</CardTitle>
-                  <CardDescription>Sentiment evolution over time</CardDescription>
+                  <CardTitle>Sentiment Trends Over Time</CardTitle>
+                  <CardDescription>
+                    Feature mention trends by month
+                    {selectedSentimentFilter !== "all" && (
+                      <span className="ml-2 text-blue-600">
+                        (Filtered by: {selectedSentimentFilter.replace("-", " ").toUpperCase()})
+                      </span>
+                    )}
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="h-64 flex items-center justify-center text-gray-500">
-                    <div className="text-center">
-                      <BarChart3 className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-                      <p>Sentiment trend chart would be rendered here</p>
-                      <p className="text-sm">Integration with charting library needed</p>
-                    </div>
-                  </div>
+                  <SentimentTrendChart />
                 </CardContent>
               </Card>
             </div>
@@ -1017,23 +1186,43 @@ export default function ProductInsightsDashboard() {
                 <CardDescription>Direct customer feedback and quotes filtered by product features</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="mb-6">
-                  <Label htmlFor="feature-filter" className="text-sm font-medium mb-2 block">
-                    Filter by Feature
-                  </Label>
-                  <Select value={selectedFeatureFilter} onValueChange={setSelectedFeatureFilter}>
-                    <SelectTrigger className="w-full md:w-64">
-                      <SelectValue placeholder="All Features" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Features</SelectItem>
-                      {Object.keys(mockCustomerReviewsByFeature).map((feature) => (
-                        <SelectItem key={feature} value={feature}>
-                          {feature}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                  <div>
+                    <Label htmlFor="feature-filter" className="text-sm font-medium mb-2 block">
+                      Filter by Feature
+                    </Label>
+                    <Select value={selectedFeatureFilter} onValueChange={setSelectedFeatureFilter}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="All Features" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Features</SelectItem>
+                        {Object.keys(mockCustomerReviewsByFeature).map((feature) => (
+                          <SelectItem key={feature} value={feature}>
+                            {feature}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="source-filter" className="text-sm font-medium mb-2 block">
+                      Filter by Source
+                    </Label>
+                    <Select value={selectedSourceFilter} onValueChange={setSelectedSourceFilter}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="All Sources" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Sources</SelectItem>
+                        <SelectItem value="apb-asin">APB ASIN</SelectItem>
+                        <SelectItem value="cmts">CMTs</SelectItem>
+                        <SelectItem value="wide-peers">Wide Peers</SelectItem>
+                        <SelectItem value="narrow-peers">Narrow Peers</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
 
                 {selectedFeatureFilter && selectedFeatureFilter !== "all" ? (
