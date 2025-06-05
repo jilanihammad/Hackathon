@@ -1,15 +1,12 @@
-"use client" // This directive tells Next.js to run this code in the browser (client-side), not on the server.
+"use client"
 
-// --- Imports ---
-// These bring in libraries and components needed for the dashboard.
-import type React from "react" // Type definitions for React to help with code reliability (optional but useful for TypeScript).
-import { useState, useEffect } from "react" // React hooks: useState manages dynamic data, useEffect runs code at specific times.
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card" // UI components for boxed content sections.
-import { Button } from "@/components/ui/button" // A reusable button component.
-import { Badge } from "@/components/ui/badge" // Small labels for highlighting info (e.g., "high priority").
-import { Progress } from "@/components/ui/progress" // A progress bar for visual percentages.
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs" // Components for tabbed navigation.
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select" // Dropdown menu components.
+import { useState, useEffect } from "react"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import { Progress } from "@/components/ui/progress"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import {
   Dialog,
   DialogContent,
@@ -18,38 +15,12 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog" // Pop-up dialog components (e.g., for data integration).
-import { Input } from "@/components/ui/input" // Text input fields (e.g., for API keys or file uploads).
-import { Label } from "@/components/ui/label" // Labels to describe inputs.
-import {
-  DollarSign,
-  Target,
-  Search,
-  BarChart3,
-  MessageSquare,
-  Lightbulb,
-  AlertTriangle,
-  CheckCircle,
-  XCircle,
-  Eye,
-  ThumbsUp,
-  ThumbsDown,
-  Upload,
-  Database,
-  RefreshCw,
-  FileSpreadsheet,
-  BarChart,
-} from "lucide-react" // Icons to enhance the UI visually.
+} from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+// Using Unicode symbols instead of lucide-react icons
 
-// --- Mock Data ---
-// Fake data to simulate real customer feedback and product info. Replace with API calls or real data later.
-const mockProducts = [
-  { id: "apb-001", name: "APB Wireless Headphones Pro", category: "Audio", asin: "B08XYZ123" },
-  { id: "apb-002", name: "APB Smart Watch Series 3", category: "Wearables", asin: "B09ABC456" },
-  { id: "comp-001", name: "Sony WH-1000XM5", category: "Audio", asin: "B09DEF789" },
-]
-// **Edit Here:** Add more products by following this format: { id, name, category, asin }.
-
+// --- Mock Data (keeping existing recommendations data) ---
 const mockFeatureRecommendations = [
   {
     id: 1,
@@ -57,7 +28,7 @@ const mockFeatureRecommendations = [
     type: "add",
     priority: "Add feature",
     sentiment: 0.85,
-    mentions: 1247,
+    mentions: "95%",
     costEstimate: "$2.5M",
     impact: "140%",
     customerQuote: "I LOVE the noise cancellation feature at this price point!",
@@ -100,7 +71,6 @@ const mockFeatureRecommendations = [
     confidence: 71,
   },
 ]
-// **Edit Here:** Add new recommendations by copying this structure and updating values.
 
 const mockSentimentData = {
   overall: 0.68,
@@ -112,7 +82,6 @@ const mockSentimentData = {
     Price: 0.38,
   },
 }
-// **Edit Here:** Update sentiment scores (0 to 1) or add new features.
 
 const mockPeerComparison = [
   {
@@ -161,77 +130,7 @@ const mockPeerComparison = [
     sentiment: 0.72,
     customerDemand: "medium",
   },
-  {
-    feature: "Battery Life (20+ hours)",
-    ourProduct: true,
-    peers: {
-      cmt: [
-        { name: "Sony WH-1000XM5", has: true },
-        { name: "Bose QC45", has: true },
-        { name: "Apple AirPods Pro", has: false },
-      ],
-      wide: [
-        { name: "JBL Live 660NC", has: true },
-        { name: "Sennheiser HD 450BT", has: true },
-        { name: "Anker Soundcore Q30", has: true },
-      ],
-      narrow: [
-        { name: "Audio-Technica ATH-M50xBT", has: true },
-        { name: "Jabra Elite 85h", has: true },
-        { name: "Beats Studio3", has: true },
-      ],
-    },
-    sentiment: 0.88,
-    customerDemand: "high",
-  },
-  {
-    feature: "Foldable Design",
-    ourProduct: true,
-    peers: {
-      cmt: [
-        { name: "Sony WH-1000XM5", has: true },
-        { name: "Bose QC45", has: true },
-        { name: "Apple AirPods Pro", has: false },
-      ],
-      wide: [
-        { name: "JBL Live 660NC", has: true },
-        { name: "Sennheiser HD 450BT", has: true },
-        { name: "Anker Soundcore Q30", has: true },
-      ],
-      narrow: [
-        { name: "Audio-Technica ATH-M50xBT", has: true },
-        { name: "Jabra Elite 85h", has: false },
-        { name: "Beats Studio3", has: true },
-      ],
-    },
-    sentiment: 0.65,
-    customerDemand: "medium",
-  },
-  {
-    feature: "Multi-device Connection",
-    ourProduct: false,
-    peers: {
-      cmt: [
-        { name: "Sony WH-1000XM5", has: true },
-        { name: "Bose QC45", has: true },
-        { name: "Apple AirPods Pro", has: true },
-      ],
-      wide: [
-        { name: "JBL Live 660NC", has: false },
-        { name: "Sennheiser HD 450BT", has: true },
-        { name: "Anker Soundcore Q30", has: false },
-      ],
-      narrow: [
-        { name: "Audio-Technica ATH-M50xBT", has: false },
-        { name: "Jabra Elite 85h", has: true },
-        { name: "Beats Studio3", has: false },
-      ],
-    },
-    sentiment: 0.78,
-    customerDemand: "high",
-  },
 ]
-// **Edit Here:** Add new features or competitors by copying this structure.
 
 const mockCustomerReviewsByFeature = {
   "Sound Quality": {
@@ -292,95 +191,7 @@ const mockCustomerReviewsByFeature = {
       },
     ],
   },
-  Comfort: {
-    searchTerms: ["comfort", "comfortable", "fit", "ear", "padding", "ergonomic"],
-    reviews: [
-      {
-        id: 7,
-        text: "Very comfortable for long listening sessions",
-        rating: 4,
-        sentiment: "positive",
-        verified: true,
-        date: "2024-01-13",
-      },
-      {
-        id: 8,
-        text: "Fits perfectly, no ear fatigue after hours of use",
-        rating: 5,
-        sentiment: "positive",
-        verified: true,
-        date: "2024-01-08",
-      },
-      {
-        id: 9,
-        text: "Too tight on my head, becomes uncomfortable after 30 minutes",
-        rating: 2,
-        sentiment: "negative",
-        verified: true,
-        date: "2024-01-07",
-      },
-    ],
-  },
-  "Touch Controls": {
-    searchTerms: ["touch controls", "controls", "buttons", "touch", "gestures", "interface"],
-    reviews: [
-      {
-        id: 10,
-        text: "Touch controls are too sensitive, constantly pausing music",
-        rating: 2,
-        sentiment: "negative",
-        verified: true,
-        date: "2024-01-06",
-      },
-      {
-        id: 11,
-        text: "Controls are intuitive once you get used to them",
-        rating: 4,
-        sentiment: "positive",
-        verified: true,
-        date: "2024-01-05",
-      },
-      {
-        id: 12,
-        text: "Wish there were physical buttons instead of touch",
-        rating: 3,
-        sentiment: "negative",
-        verified: true,
-        date: "2024-01-04",
-      },
-    ],
-  },
-  "Build Quality": {
-    searchTerms: ["build quality", "construction", "materials", "durability", "solid", "sturdy"],
-    reviews: [
-      {
-        id: 13,
-        text: "Solid build quality, feels premium",
-        rating: 5,
-        sentiment: "positive",
-        verified: true,
-        date: "2024-01-03",
-      },
-      {
-        id: 14,
-        text: "Materials feel cheap for the price point",
-        rating: 2,
-        sentiment: "negative",
-        verified: true,
-        date: "2024-01-02",
-      },
-      {
-        id: 15,
-        text: "Well constructed, should last for years",
-        rating: 4,
-        sentiment: "positive",
-        verified: true,
-        date: "2024-01-01",
-      },
-    ],
-  },
 }
-// **Edit Here:** Add new features or reviews by copying this structure.
 
 const mockSentimentTrends = {
   "Sound Quality": [
@@ -410,82 +221,556 @@ const mockSentimentTrends = {
     { month: "2023-12", mentions: 289 },
     { month: "2024-01", mentions: 312 },
   ],
-  "Touch Controls": [
-    { month: "2023-07", mentions: 134 },
-    { month: "2023-08", mentions: 167 },
-    { month: "2023-09", mentions: 189 },
-    { month: "2023-10", mentions: 212 },
-    { month: "2023-11", mentions: 245 },
-    { month: "2023-12", mentions: 278 },
-    { month: "2024-01", mentions: 301 },
-  ],
-  "Build Quality": [
-    { month: "2023-07", mentions: 98 },
-    { month: "2023-08", mentions: 123 },
-    { month: "2023-09", mentions: 145 },
-    { month: "2023-10", mentions: 167 },
-    { month: "2023-11", mentions: 189 },
-    { month: "2023-12", mentions: 212 },
-    { month: "2024-01", mentions: 234 },
-  ],
 }
-// **Edit Here:** Add new features or time periods for trends.
 
 const featureColors = {
   "Sound Quality": "#3B82F6",
   "Battery Life": "#10B981",
   Comfort: "#F59E0B",
-  "Touch Controls": "#EF4444",
-  "Build Quality": "#8B5CF6",
 }
-// **Edit Here:** Add new features and their colors for the trend chart.
+
+// Mentions Trend Chart Component
+const CustomerMentionChart = () => {
+  const chartWidth = 600
+  const chartHeight = 300
+  const padding = 60
+
+  const allMonths = mockSentimentTrends["Sound Quality"].map((d) => d.month)
+  const maxMentions = Math.max(
+    ...Object.values(mockSentimentTrends)
+      .flat()
+      .map((d) => d.mentions),
+  )
+
+  const getX = (index) => padding + (index * (chartWidth - 2 * padding)) / (allMonths.length - 1)
+  const getY = (mentions) => chartHeight - padding - (mentions / maxMentions) * (chartHeight - 2 * padding)
+
+  return (
+    <div className="w-full overflow-x-auto">
+      <svg width={chartWidth} height={chartHeight} className="border rounded">
+        {/* Grid lines */}
+        {[0, 1, 2, 3, 4].map((i) => {
+          const y = padding + (i * (chartHeight - 2 * padding)) / 4
+          return <line key={i} x1={padding} y1={y} x2={chartWidth - padding} y2={y} stroke="#E5E7EB" strokeWidth="1" />
+        })}
+
+        {/* Y-axis labels */}
+        {[0, 1, 2, 3, 4].map((i) => {
+          const value = Math.round((maxMentions * (4 - i)) / 4)
+          const y = padding + (i * (chartHeight - 2 * padding)) / 4
+          return (
+            <text key={i} x={padding - 10} y={y + 4} textAnchor="end" fontSize="12" fill="#6B7280">
+              {value}
+            </text>
+          )
+        })}
+
+        {/* X-axis labels */}
+        {allMonths.map((month, index) => (
+          <text
+            key={month}
+            x={getX(index)}
+            y={chartHeight - padding + 20}
+            textAnchor="middle"
+            fontSize="12"
+            fill="#6B7280"
+          >
+            {new Date(month + "-01").toLocaleDateString("en-US", { month: "short", year: "2-digit" })}
+          </text>
+        ))}
+
+        {/* Feature lines */}
+        {Object.entries(mockSentimentTrends).map(([feature, data]) => {
+          const pathData = data
+            .map((d, index) => `${index === 0 ? "M" : "L"} ${getX(index)} ${getY(d.mentions)}`)
+            .join(" ")
+
+          return (
+            <g key={feature}>
+              <path d={pathData} fill="none" stroke={featureColors[feature]} strokeWidth="2" />
+              {data.map((d, index) => (
+                <circle key={index} cx={getX(index)} cy={getY(d.mentions)} r="4" fill={featureColors[feature]} />
+              ))}
+            </g>
+          )
+        })}
+
+        {/* Axis labels */}
+        <text x={chartWidth / 2} y={chartHeight - 10} textAnchor="middle" fontSize="14" fill="#374151">
+          Time Period
+        </text>
+        <text
+          x={20}
+          y={chartHeight / 2}
+          textAnchor="middle"
+          fontSize="14"
+          fill="#374151"
+          transform={`rotate(-90 20 ${chartHeight / 2})`}
+        >
+          Mentions Count
+        </text>
+      </svg>
+
+      {/* Legend */}
+      <div className="flex flex-wrap gap-4 mt-4 justify-center">
+        {Object.entries(featureColors).map(([feature, color]) => (
+          <div key={feature} className="flex items-center gap-2">
+            <div className="w-4 h-4 rounded" style={{ backgroundColor: color }}></div>
+            <span className="text-sm">{feature}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
 
 // --- Main Dashboard Component ---
 export default function ProductInsightsDashboard() {
   // --- State Variables ---
-  // These hold data that changes based on user interaction, persisted with localStorage.
-  const [selectedCategory, setSelectedCategory] = useState("") // Tracks the selected product category.
-  const [priorityFilter, setPriorityFilter] = useState("all") // Filters recommendations by priority.
-  const [selectedPeers, setSelectedPeers] = useState("") // Tracks the selected peer group for comparison.
-  const [isIntegrationDialogOpen, setIsIntegrationDialogOpen] = useState(false) // Controls visibility of the integration dialog.
-  const [selectedFile, setSelectedFile] = useState<File | null>(null) // Stores the file selected for upload.
-  const [apiKey, setApiKey] = useState("") // Stores the API key entered by the user.
-  const [isLoading, setIsLoading] = useState(false) // Tracks if an operation (e.g., integration) is in progress.
-  const [selectedFeatureFilter, setSelectedFeatureFilter] = useState("all") // Filters reviews by feature.
-  const [selectedSourceFilter, setSelectedSourceFilter] = useState("all") // Filters reviews by source.
-  const [selectedPeerFilter, setSelectedPeerFilter] = useState("all") // Filters peer comparison data.
-  const [selectedSentimentFilter, setSelectedSentimentFilter] = useState("all") // Filters sentiment analysis data.
+  const [productData, setProductData] = useState({
+    // Default/Fallback data - always available
+    irns: [
+      { id: "Audio & Video Connectors & Adapters", name: "Audio & Video Connectors & Adapters" },
+      { id: "Cat 6 Ethernet Cables", name: "Cat 6 Ethernet Cables" },
+      { id: "Cat 7 Ethernet Cables", name: "Cat 7 Ethernet Cables" },
+      { id: "Cell Phone OTG Adapters", name: "Cell Phone OTG Adapters" },
+      { id: "Computer Adapters", name: "Computer Adapters" },
+      { id: "Computer Cables & Interconnects", name: "Computer Cables & Interconnects" },
+      { id: "Computer DisplayPort Cables", name: "Computer DisplayPort Cables" },
+      { id: "Computer Keyboard & Mouse Combos", name: "Computer Keyboard & Mouse Combos" },
+      { id: "Computer Keyboards", name: "Computer Keyboards" },
+      { id: "Computer Mice", name: "Computer Mice" },
+      { id: "Computer Monitors", name: "Computer Monitors" },
+      { id: "Computer Speakers", name: "Computer Speakers" },
+      { id: "USB Cables", name: "USB Cables" },
+      { id: "USB Flash Drives", name: "USB Flash Drives" },
+      { id: "USB Hubs", name: "USB Hubs" },
+      { id: "Lightning Cables", name: "Lightning Cables" },
+    ],
+    asins: [
+      {
+        id: "B0898BYFSB",
+        name: "B0898BYFSB",
+        irnId: "Audio & Video Connectors & Adapters",
+        peerIds: ["B018GZAHFS", "B07HSY63VQ", "B07THJGZ9Z", "B08KVSHQ8B"],
+      },
+      {
+        id: "B0B8CTN9KW",
+        name: "B0B8CTN9KW",
+        irnId: "Cat 6 Ethernet Cables",
+        peerIds: ["B00AJHC51G", "B007NZGPAY", "B018BCJM52"],
+      },
+      {
+        id: "B0B8K3VD82",
+        name: "B0B8K3VD82",
+        irnId: "Cat 6 Ethernet Cables",
+        peerIds: ["B077H5N5L5", "B0B57PDRS2", "B01IQWGKXE"],
+      },
+      {
+        id: "B074W9T3G7",
+        name: "B074W9T3G7",
+        irnId: "Cat 6 Ethernet Cables",
+        peerIds: ["B00AJHBZ76", "B003EE6HJM", "B00D8N3RNI"],
+      },
+      {
+        id: "B089MGH8T5",
+        name: "B089MGH8T5",
+        irnId: "Cat 6 Ethernet Cables",
+        peerIds: ["B002RB0ZFU", "B004HJC76K", "B0B57RDX6P"],
+      },
+      {
+        id: "B07ZTRR8RP",
+        name: "B07ZTRR8RP",
+        irnId: "Cat 7 Ethernet Cables",
+        peerIds: ["B015DX4SAQ", "B08PL3VQC2", "B08296GPP3"],
+      },
+      {
+        id: "B089MF1LZN",
+        name: "B089MF1LZN",
+        irnId: "Cat 7 Ethernet Cables",
+        peerIds: ["B08LK8HNQ3", "B0BXJ3YBXR", "B00WD017BG", "B00AJHCJGW"],
+      },
+      {
+        id: "B01GGKYXVE",
+        name: "B01GGKYXVE",
+        irnId: "Cell Phone OTG Adapters",
+        peerIds: ["B0842CV8NY", "B012V56C8K", "B01COOQIKU"],
+      },
+      {
+        id: "B081VKWHY2",
+        name: "B081VKWHY2",
+        irnId: "Computer Adapters",
+        peerIds: ["B0893452HR", "B08HYRV34C", "B08HYS5WSS"],
+      },
+      {
+        id: "B08FBJYWTJ",
+        name: "B08FBJYWTJ",
+        irnId: "Computer Cables & Interconnects",
+        peerIds: ["B09DJ7H4ZS", "B098FZTSVN", "B0892G1FCW", "B07GTH548T"],
+      },
+      {
+        id: "B01J8S6X2I",
+        name: "B01J8S6X2I",
+        irnId: "Computer DisplayPort Cables",
+        peerIds: ["B018HIHF4U", "B09ZQLV6CR", "B005H3Q59U", "B078HVDMW2"],
+      },
+      {
+        id: "B015OW3M1W",
+        name: "B015OW3M1W",
+        irnId: "Computer DisplayPort Cables",
+        peerIds: ["B0C4NG33D7", "B07Y1XM998", "B001TUZ6EU"],
+      },
+      {
+        id: "B07WJ5D3H4",
+        name: "B07WJ5D3H4",
+        irnId: "Computer Keyboards",
+        peerIds: ["B0BT15X781", "B003NR874S", "B0BJDPT8V3", "B00JV08TIA", "B07RQVB3HQ"],
+      },
+      {
+        id: "B0787CVBWP",
+        name: "B0787CVBWP",
+        irnId: "Computer Keyboards",
+        peerIds: ["B079JLY5M5", "B07BJ4SJMP", "B07VJXFFJW", "B08LDCSXKL"],
+      },
+      {
+        id: "B078HFRNSP",
+        name: "B078HFRNSP",
+        irnId: "Computer Mice",
+        peerIds: ["B0D2JGKRMM", "B087Z733CM", "B08LW47C2W"],
+      },
+      {
+        id: "B005EJH6RW",
+        name: "B005EJH6RW",
+        irnId: "Computer Mice",
+        peerIds: ["B0CZM4KPZ1", "B012DT5U96", "B003L62T7W", "B09YD8VLN3"],
+      },
+      {
+        id: "B082T62QSC",
+        name: "B082T62QSC",
+        irnId: "Lightning Cables",
+        peerIds: ["B0B1NR7937", "B07D9C8NP2", "B07D999V5P"],
+      },
+      {
+        id: "B082T6DGFY",
+        name: "B082T6DGFY",
+        irnId: "Lightning Cables",
+        peerIds: ["B086H3M59C", "B071WQ2QT", "B09HBYLMPB", "B092Q1LT3S"],
+      },
+    ],
+  })
+
+  // Metrics data from additional files
+  const [metricsData, setMetricsData] = useState({
+    customerReviews: {}, // { asinId: averageRating }
+    amazonAsins: {}, // { asinId: price/data }
+    topOfSearch: {}, // { asinId: ranking/percentage }
+  })
+
+  const [isLoadingData, setIsLoadingData] = useState(true)
+  const [dataSource, setDataSource] = useState("fallback") // "fallback", "file", or "error"
+  const [fileError, setFileError] = useState(null)
+
+  // File status tracking
+  const [fileStatus, setFileStatus] = useState({
+    main: "none", // 'none', 'loaded', 'error'
+    customerReviews: "none",
+    amazonAsins: "none",
+    topOfSearch: "none",
+  })
+
+  const [selectedIRN, setSelectedIRN] = useState("all")
+  const [selectedASIN, setSelectedASIN] = useState("all")
+  const [selectedPeers, setSelectedPeers] = useState("all")
+  const [priorityFilter, setPriorityFilter] = useState("all")
+  const [isIntegrationDialogOpen, setIsIntegrationDialogOpen] = useState(false)
+
+  // File upload state
+  const [selectedFiles, setSelectedFiles] = useState({
+    main: null,
+    customerReviews: null,
+    amazonAsins: null,
+    topOfSearch: null,
+  })
+
+  const [apiKey, setApiKey] = useState("")
+  const [isLoading, setIsLoading] = useState(false)
+  const [selectedFeatureFilter, setSelectedFeatureFilter] = useState("all")
+  const [selectedSourceFilter, setSelectedSourceFilter] = useState("all")
+  const [selectedPeerFilter, setSelectedPeerFilter] = useState("all")
+  const [selectedSentimentFilter, setSelectedSentimentFilter] = useState("all")
+
+  // --- Load Product Data (start with fallback only) ---
+  useEffect(() => {
+    // Start with fallback data immediately - no file loading attempts
+    setIsLoadingData(false)
+    setDataSource("fallback")
+    console.log(
+      `📊 Dashboard ready with built-in data: ${productData.irns.length} IRNs, ${productData.asins.length} ASINs`,
+    )
+  }, [])
 
   // --- Load Saved Filters ---
-  // Restores user selections from localStorage when the dashboard loads.
   useEffect(() => {
-    const savedCategory = localStorage.getItem("selectedCategory")
-    const savedPriority = localStorage.getItem("priorityFilter")
+    const savedIRN = localStorage.getItem("selectedIRN")
+    const savedASIN = localStorage.getItem("selectedASIN")
     const savedPeers = localStorage.getItem("selectedPeers")
-    if (savedCategory) setSelectedCategory(savedCategory)
-    if (savedPriority) setPriorityFilter(savedPriority)
+    const savedPriority = localStorage.getItem("priorityFilter")
+
+    if (savedIRN) setSelectedIRN(savedIRN)
+    if (savedASIN) setSelectedASIN(savedASIN)
     if (savedPeers) setSelectedPeers(savedPeers)
-  }, []) // Empty array means this runs once when the component mounts.
+    if (savedPriority) setPriorityFilter(savedPriority)
+  }, [])
 
   // --- Save Filters ---
-  // Saves user selections to localStorage whenever they change.
   useEffect(() => {
-    localStorage.setItem("selectedCategory", selectedCategory)
-    localStorage.setItem("priorityFilter", priorityFilter)
+    localStorage.setItem("selectedIRN", selectedIRN)
+    localStorage.setItem("selectedASIN", selectedASIN)
     localStorage.setItem("selectedPeers", selectedPeers)
-  }, [selectedCategory, priorityFilter, selectedPeers]) // Runs when these values change.
+    localStorage.setItem("priorityFilter", priorityFilter)
+  }, [selectedIRN, selectedASIN, selectedPeers, priorityFilter])
+
+  // --- File Processing Functions ---
+  const handleFileChange = (fileType, e) => {
+    if (e.target.files && e.target.files[0]) {
+      setSelectedFiles((prev) => ({
+        ...prev,
+        [fileType]: e.target.files[0],
+      }))
+    }
+  }
+
+  const processMetricsFile = async (file, fileType) => {
+    const fileContent = await file.text()
+    let data
+
+    // Try JSON first, then CSV
+    try {
+      data = JSON.parse(fileContent)
+    } catch {
+      // If not JSON, try parsing as CSV
+      const lines = fileContent.split("\n").filter((line) => line.trim())
+      if (lines.length < 2) {
+        throw new Error("File appears to be empty or has insufficient data")
+      }
+
+      const headers = lines[0].split(",").map((h) => h.trim().replace(/['"]/g, ""))
+      data = {}
+
+      // Look for ASIN column and value column
+      const asinIndex = headers.findIndex((h) => h.toLowerCase().includes("asin") || h.toLowerCase().includes("id"))
+
+      let valueIndex = -1
+      if (fileType === "customerReviews") {
+        valueIndex = headers.findIndex(
+          (h) =>
+            h.toLowerCase().includes("rating") || h.toLowerCase().includes("star") || h.toLowerCase().includes("score"),
+        )
+      } else if (fileType === "amazonAsins") {
+        valueIndex = headers.findIndex(
+          (h) =>
+            h.toLowerCase().includes("price") || h.toLowerCase().includes("asp") || h.toLowerCase().includes("cost"),
+        )
+      } else if (fileType === "topOfSearch") {
+        valueIndex = headers.findIndex(
+          (h) =>
+            h.toLowerCase().includes("search") ||
+            h.toLowerCase().includes("rank") ||
+            h.toLowerCase().includes("position") ||
+            h.toLowerCase().includes("tos"),
+        )
+      }
+
+      // If specific columns not found, use first two columns
+      let asinIdx = -1
+      let valueIdx = -1
+      if (asinIdx === -1) asinIdx = 0
+      if (valueIdx === -1) valueIdx = 1
+
+      for (let i = 1; i < lines.length; i++) {
+        const values = lines[i].split(",").map((v) => v.trim().replace(/['"]/g, ""))
+        const asin = values[asinIdx]
+        const value = Number.parseFloat(values[valueIdx]) || values[valueIdx]
+        if (asin && value !== undefined && value !== "") {
+          data[asin] = value
+        }
+      }
+    }
+
+    return data
+  }
+
+  const handleIntegrationSubmit = async () => {
+    setIsLoading(true)
+    const newFileStatus = { ...fileStatus }
+
+    try {
+      // Process main product data file
+      if (selectedFiles.main) {
+        try {
+          const fileContent = await selectedFiles.main.text()
+          const data = JSON.parse(fileContent)
+
+          if (!data.irns || !data.asins || !Array.isArray(data.irns) || !Array.isArray(data.asins)) {
+            throw new Error('Invalid main file format. Expected JSON with "irns" and "asins" arrays.')
+          }
+
+          setProductData(data)
+          setDataSource("file")
+          newFileStatus.main = "loaded"
+
+          // Reset selections
+          setSelectedIRN("all")
+          setSelectedASIN("all")
+          setSelectedPeers("all")
+
+          console.log(`✅ Main data file loaded: ${data.irns.length} IRNs, ${data.asins.length} ASINs`)
+        } catch (error) {
+          newFileStatus.main = "error"
+          console.error("Main file error:", error)
+        }
+      }
+
+      // Process metrics files
+      const newMetricsData = { ...metricsData }
+
+      if (selectedFiles.customerReviews) {
+        try {
+          newMetricsData.customerReviews = await processMetricsFile(selectedFiles.customerReviews, "customerReviews")
+          newFileStatus.customerReviews = "loaded"
+          console.log(`✅ Customer reviews loaded: ${Object.keys(newMetricsData.customerReviews).length} ASINs`)
+        } catch (error) {
+          newFileStatus.customerReviews = "error"
+          console.error("Customer reviews file error:", error)
+        }
+      }
+
+      if (selectedFiles.amazonAsins) {
+        try {
+          newMetricsData.amazonAsins = await processMetricsFile(selectedFiles.amazonAsins, "amazonAsins")
+          newFileStatus.amazonAsins = "loaded"
+          console.log(`✅ Amazon ASINs data loaded: ${Object.keys(newMetricsData.amazonAsins).length} ASINs`)
+        } catch (error) {
+          newFileStatus.amazonAsins = "error"
+          console.error("Amazon ASINs file error:", error)
+        }
+      }
+
+      if (selectedFiles.topOfSearch) {
+        try {
+          newMetricsData.topOfSearch = await processMetricsFile(selectedFiles.topOfSearch, "topOfSearch")
+          newFileStatus.topOfSearch = "loaded"
+          console.log(`✅ Top of Search data loaded: ${Object.keys(newMetricsData.topOfSearch).length} ASINs`)
+        } catch (error) {
+          newFileStatus.topOfSearch = "error"
+          console.error("Top of Search file error:", error)
+        }
+      }
+
+      setMetricsData(newMetricsData)
+      setFileStatus(newFileStatus)
+
+      // Success message
+      const uploadedFiles = Object.values(selectedFiles).filter((f) => f).length
+      const successfulUploads = Object.values(newFileStatus).filter((s) => s === "loaded").length
+
+      if (uploadedFiles > 0) {
+        alert(`Integration completed!\n${successfulUploads}/${uploadedFiles} files processed successfully.`)
+      }
+    } catch (error) {
+      console.error("Integration error:", error)
+      alert(`Integration failed: ${error.message}`)
+    } finally {
+      setIsLoading(false)
+      setIsIntegrationDialogOpen(false)
+      setSelectedFiles({ main: null, customerReviews: null, amazonAsins: null, topOfSearch: null })
+      setApiKey("")
+    }
+  }
+
+  // --- Calculate Metrics with Real Data ---
+  const calculateRealMetrics = () => {
+    const filteredASINs = getFilteredASINs()
+    let avgRating = 4.3
+    let avgASP = 25.75
+    let avgTOS = 7
+
+    if (filteredASINs.length > 0) {
+      // Calculate average rating from real data if available
+      const ratingsWithData = filteredASINs.filter((asin) => metricsData.customerReviews[asin.id])
+      if (ratingsWithData.length > 0) {
+        const totalRating = ratingsWithData.reduce(
+          (sum, asin) => sum + Number.parseFloat(metricsData.customerReviews[asin.id]),
+          0,
+        )
+        avgRating = totalRating / ratingsWithData.length
+      }
+
+      // Calculate average ASP from real data if available
+      const aspWithData = filteredASINs.filter((asin) => metricsData.amazonAsins[asin.id])
+      if (aspWithData.length > 0) {
+        const totalASP = aspWithData.reduce((sum, asin) => sum + Number.parseFloat(metricsData.amazonAsins[asin.id]), 0)
+        avgASP = totalASP / aspWithData.length
+      }
+
+      // Calculate average Top of Search from real data if available
+      const tosWithData = filteredASINs.filter((asin) => metricsData.topOfSearch[asin.id])
+      if (tosWithData.length > 0) {
+        const totalTOS = tosWithData.reduce((sum, asin) => sum + Number.parseFloat(metricsData.topOfSearch[asin.id]), 0)
+        avgTOS = totalTOS / tosWithData.length
+      }
+    }
+
+    return { avgRating, avgASP, avgTOS }
+  }
+
+  // --- Filtering Logic ---
+  // Get available ASINs based on selected IRN
+  const getFilteredASINs = () => {
+    if (!selectedIRN || selectedIRN === "all") return productData.asins
+    return productData.asins.filter((asin) => asin.irnId === selectedIRN)
+  }
+
+  // Get available peers based on selected ASIN
+  const getAvailablePeers = () => {
+    if (!selectedASIN || selectedASIN === "all") return []
+    const asin = productData.asins.find((a) => a.id === selectedASIN)
+    return asin ? asin.peerIds : []
+  }
+
+  // Handle IRN selection
+  const handleIRNChange = (irnId) => {
+    setSelectedIRN(irnId)
+
+    // Clear ASIN if it doesn't belong to the new IRN
+    if (selectedASIN && selectedASIN !== "all") {
+      const asin = productData.asins.find((a) => a.id === selectedASIN)
+      if (asin && asin.irnId !== irnId && irnId !== "all") {
+        setSelectedASIN("all")
+      }
+    }
+  }
+
+  // Handle ASIN selection
+  const handleASINChange = (asinId) => {
+    setSelectedASIN(asinId)
+
+    // Auto-select the IRN if ASIN is selected
+    if (asinId && asinId !== "all") {
+      const asin = productData.asins.find((a) => a.id === asinId)
+      if (asin && asin.irnId !== selectedIRN) {
+        setSelectedIRN(asin.irnId)
+      }
+    }
+  }
 
   // --- Filter Recommendations ---
-  // Filters the feature recommendations based on the selected priority.
   const filteredRecommendations = mockFeatureRecommendations.filter(
     (rec) => priorityFilter === "all" || rec.priority === priorityFilter,
   )
 
   // --- Helper Functions ---
-  // These handle styling and logic for the dashboard.
-
-  // Returns a color class for priority badges based on the priority type.
-  const getPriorityColor = (priority: string) => {
+  const getPriorityColor = (priority) => {
     switch (priority) {
       case "Add feature":
         return "bg-green-100 text-green-800 border-green-200"
@@ -496,167 +781,107 @@ export default function ProductInsightsDashboard() {
       default:
         return "bg-gray-100 text-gray-800 border-gray-200"
     }
-    // **Edit Here:** Add more priority types and colors if needed.
   }
 
-  // Returns an icon based on the recommendation type.
-  const getTypeIcon = (type: string) => {
+  const getTypeIcon = (type) => {
     switch (type) {
       case "add":
-        return <CheckCircle className="h-4 w-4 text-green-600" />
+        return <span className="text-green-600">✅</span>
       case "improve":
-        return <AlertTriangle className="h-4 w-4 text-yellow-600" />
+        return <span className="text-yellow-600">⚠️</span>
       case "remove":
-        return <XCircle className="h-4 w-4 text-red-600" />
+        return <span className="text-red-600">❌</span>
       default:
-        return <Lightbulb className="h-4 w-4" />
+        return <span>💡</span>
     }
-    // **Edit Here:** Add new types and icons as needed.
   }
 
-  // Returns a text color class based on sentiment score.
-  const getSentimentColor = (sentiment: number) => {
+  const getSentimentColor = (sentiment) => {
     if (sentiment > 0.6) return "text-green-600"
     if (sentiment > 0.2) return "text-yellow-600"
     return "text-red-600"
-    // **Edit Here:** Adjust thresholds (0.6, 0.2) to change color ranges.
   }
 
-  // Updates the selected file when a user uploads one.
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setSelectedFile(e.target.files[0])
-    }
-  }
-
-  // Simulates submitting an integration (API key or file upload).
-  const handleIntegrationSubmit = () => {
-    setIsLoading(true) // Show loading state.
-    // Fake delay to mimic an API call.
-    setTimeout(() => {
-      setIsLoading(false)
-      setIsIntegrationDialogOpen(false) // Close the dialog.
-      alert("Integration successful!") // Notify the user.
-    }, 2000) // 2-second delay.
-    // **Edit Here:** Replace with real API integration logic.
-  }
-
-  // Resets all filters to their default values and clears localStorage.
   const resetFilters = () => {
-    setSelectedCategory("")
+    setSelectedIRN("all")
+    setSelectedASIN("all")
+    setSelectedPeers("all")
     setPriorityFilter("all")
-    setSelectedPeers("")
     setSelectedSourceFilter("all")
     setSelectedPeerFilter("all")
     setSelectedSentimentFilter("all")
-    localStorage.removeItem("selectedCategory")
-    localStorage.removeItem("priorityFilter")
+    localStorage.removeItem("selectedIRN")
+    localStorage.removeItem("selectedASIN")
     localStorage.removeItem("selectedPeers")
-    localStorage.removeItem("selectedSourceFilter")
-    localStorage.removeItem("selectedPeerFilter")
-    localStorage.removeItem("selectedSentimentFilter")
+    localStorage.removeItem("priorityFilter")
   }
 
-  // --- Sentiment Trend Chart Component ---
-  // Creates a line chart showing feature mentions over time.
-  const SentimentTrendChart = () => {
-    const chartWidth = 600 // Width of the chart in pixels.
-    const chartHeight = 300 // Height of the chart.
-    const padding = 60 // Space around the chart for labels and axes.
+  const runAnalysis = async (e) => {
+    e.preventDefault()
 
-    const allMonths = mockSentimentTrends["Sound Quality"].map((d) => d.month) // List of months from data.
-    const maxMentions = Math.max(
-      ...Object.values(mockSentimentTrends)
-        .flat()
-        .map((d) => d.mentions),
-    ) // Highest mention count for scaling the y-axis.
+    // Determine what we're analyzing
+    const analysisScope =
+      selectedIRN && selectedIRN !== "all"
+        ? selectedASIN && selectedASIN !== "all"
+          ? `specific ASIN ${selectedASIN} in ${selectedIRN}`
+          : `all ASINs in ${selectedIRN} (${filteredASINs.length} ASINs)`
+        : "all products"
 
-    const getX = (index: number) => padding + (index * (chartWidth - 2 * padding)) / (allMonths.length - 1) // Calculates x-position for data points.
-    const getY = (mentions: number) => chartHeight - padding - (mentions / maxMentions) * (chartHeight - 2 * padding) // Calculates y-position.
+    console.log("Running analysis with filters:", {
+      selectedIRN,
+      selectedASIN,
+      selectedPeers,
+      analysisScope,
+      availablePeers: getAvailablePeers(),
+      filteredASINs: getFilteredASINs().length,
+    })
 
+    try {
+      const res = await fetch("/api/bedrock", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          prompt: `Analyze data for: ${analysisScope}. Peer group: ${selectedPeers}`,
+        }),
+      })
+
+      if (!res.ok) {
+        throw new Error("Failed to fetch Bedrock response")
+      }
+
+      const data = await res.json()
+      console.log(data)
+    } catch (error) {
+      console.error("Error running analysis:", error)
+    }
+  }
+
+  // Get current selection info for display
+  const selectedIRNInfo =
+    selectedIRN && selectedIRN !== "all" ? productData.irns.find((irn) => irn.id === selectedIRN) : null
+  const selectedASINInfo =
+    selectedASIN && selectedASIN !== "all" ? productData.asins.find((asin) => asin.id === selectedASIN) : null
+  const filteredASINs = getFilteredASINs()
+  const realMetrics = calculateRealMetrics()
+
+  // Show loading state
+  if (isLoadingData) {
     return (
-      <div className="w-full overflow-x-auto">
-        <svg width={chartWidth} height={chartHeight} className="border rounded">
-          {/* Grid lines */}
-          {[0, 1, 2, 3, 4].map((i) => {
-            const y = padding + (i * (chartHeight - 2 * padding)) / 4
-            return (
-              <line key={i} x1={padding} y1={y} x2={chartWidth - padding} y2={y} stroke="#E5E7EB" strokeWidth="1" />
-            )
-          })}
-
-          {/* Y-axis labels */}
-          {[0, 1, 2, 3, 4].map((i) => {
-            const value = Math.round((maxMentions * (4 - i)) / 4)
-            const y = padding + (i * (chartHeight - 2 * padding)) / 4
-            return (
-              <text key={i} x={padding - 10} y={y + 4} textAnchor="end" fontSize="12" fill="#6B7280">
-                {value}
-              </text>
-            )
-          })}
-
-          {/* X-axis labels */}
-          {allMonths.map((month, index) => (
-            <text
-              key={month}
-              x={getX(index)}
-              y={chartHeight - padding + 20}
-              textAnchor="middle"
-              fontSize="12"
-              fill="#6B7280"
-            >
-              {new Date(month + "-01").toLocaleDateString("en-US", { month: "short", year: "2-digit" })}
-            </text>
-          ))}
-
-          {/* Feature lines */}
-          {Object.entries(mockSentimentTrends).map(([feature, data]) => {
-            const pathData = data
-              .map((d, index) => `${index === 0 ? "M" : "L"} ${getX(index)} ${getY(d.mentions)}`)
-              .join(" ")
-            return (
-              <g key={feature}>
-                <path d={pathData} fill="none" stroke={featureColors[feature]} strokeWidth="2" />
-                {data.map((d, index) => (
-                  <circle key={index} cx={getX(index)} cy={getY(d.mentions)} r="4" fill={featureColors[feature]} />
-                ))}
-              </g>
-            )
-          })}
-
-          {/* Axis titles */}
-          <text x={chartWidth / 2} y={chartHeight - 10} textAnchor="middle" fontSize="14" fill="#374151">
-            Time Period
-          </text>
-          <text
-            x={20}
-            y={chartHeight / 2}
-            textAnchor="middle"
-            fontSize="14"
-            fill="#374151"
-            transform={`rotate(-90 20 ${chartHeight / 2})`}
-          >
-            Number of Mentions
-          </text>
-        </svg>
-
-        {/* Legend */}
-        <div className="flex flex-wrap gap-4 mt-4 justify-center">
-          {Object.entries(featureColors).map(([feature, color]) => (
-            <div key={feature} className="flex items-center gap-2">
-              <div className="w-4 h-4 rounded" style={{ backgroundColor: color }}></div>
-              <span className="text-sm">{feature}</span>
-            </div>
-          ))}
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin text-4xl mb-4">⟳</div>
+          <h2 className="text-xl font-semibold text-gray-700 mb-2">Loading Dashboard...</h2>
+          <p className="text-gray-500">Initializing with sample data</p>
+          <div className="mt-2 text-xs text-gray-400">
+            Ready to use • Upload your JSON file via "Add Integration" for custom data
+          </div>
         </div>
       </div>
     )
-    // **Edit Here:** Adjust chartWidth or chartHeight to resize the chart.
   }
 
-  // --- Main Dashboard UI ---
-  // Defines the layout and structure of the dashboard.
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header Section */}
@@ -666,34 +891,164 @@ export default function ProductInsightsDashboard() {
             <div>
               <h1 className="text-3xl font-bold text-gray-900">Product Insights Dashboard</h1>
               <p className="text-gray-600 mt-1">AI-powered customer feedback analysis for product development</p>
+
+              {/* Data Source Info */}
+              <div className="mt-2 text-xs text-gray-500">
+                <div className="inline-flex items-center flex-wrap gap-x-4 gap-y-1">
+                  <span className="inline-flex items-center">
+                    <span className="mr-1">📁</span>
+                    Product Data:
+                    {dataSource === "file" ? (
+                      <span className="ml-1 text-green-600 font-medium">
+                        ✅ Custom ({productData.irns.length} IRNs, {productData.asins.length} ASINs)
+                      </span>
+                    ) : (
+                      <span className="ml-1 font-medium">
+                        Built-in ({productData.irns.length} IRNs, {productData.asins.length} ASINs)
+                      </span>
+                    )}
+                  </span>
+
+                  {/* Metrics Files Status */}
+                  <span className="inline-flex items-center">
+                    <span className="mr-1">⭐</span>
+                    {fileStatus.customerReviews === "loaded" ? (
+                      <span className="text-green-600 font-medium">✅ Reviews</span>
+                    ) : (
+                      <span className="text-gray-400">Mock Reviews</span>
+                    )}
+                  </span>
+
+                  <span className="inline-flex items-center">
+                    <span className="mr-1">💰</span>
+                    {fileStatus.amazonAsins === "loaded" ? (
+                      <span className="text-green-600 font-medium">✅ ASINs</span>
+                    ) : (
+                      <span className="text-gray-400">Mock ASINs</span>
+                    )}
+                  </span>
+
+                  <span className="inline-flex items-center">
+                    <span className="mr-1">🔍</span>
+                    {fileStatus.topOfSearch === "loaded" ? (
+                      <span className="text-green-600 font-medium">✅ ToS</span>
+                    ) : (
+                      <span className="text-gray-400">Mock ToS</span>
+                    )}
+                  </span>
+                </div>
+              </div>
+
+              {/* Display current selection */}
+              {selectedIRNInfo && selectedIRN !== "all" && (
+                <div className="mt-2 text-sm text-blue-600">
+                  <span className="font-medium">Current Selection:</span> {selectedIRNInfo.name}
+                  {selectedASINInfo && selectedASIN !== "all" && <span> → {selectedASINInfo.id}</span>}
+                  <span className="text-gray-500 ml-2">({filteredASINs.length} ASINs available)</span>
+                </div>
+              )}
             </div>
             <div className="flex space-x-3">
-              {/* Integration Dialog */}
               <Dialog open={isIntegrationDialogOpen} onOpenChange={setIsIntegrationDialogOpen}>
                 <DialogTrigger asChild>
                   <Button variant="outline">
-                    <Database className="h-4 w-4 mr-2" />
+                    <span className="mr-2">🗄️</span>
                     Add Integration
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="sm:max-w-[500px]">
+                <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
                   <DialogHeader>
                     <DialogTitle>Add Data Integration</DialogTitle>
                     <DialogDescription>
-                      Connect to your data source or upload an Excel file with customer reviews.
+                      Upload your data files to populate the dashboard with real metrics and insights.
                     </DialogDescription>
                   </DialogHeader>
                   <div className="grid gap-6 py-4">
+                    {/* Main Product Data File */}
                     <div className="grid gap-2">
-                      <Label htmlFor="api-key">API Key</Label>
+                      <Label htmlFor="main-file" className="text-sm font-medium">
+                        🏷️ Product Data File (irn_asin_cmt.json)
+                      </Label>
                       <Input
-                        id="api-key"
-                        placeholder="Enter your API key"
-                        value={apiKey}
-                        onChange={(e) => setApiKey(e.target.value)}
+                        id="main-file"
+                        type="file"
+                        accept=".json"
+                        onChange={(e) => handleFileChange("main", e)}
+                        className="text-sm"
                       />
-                      <p className="text-sm text-gray-500">Connect to your review data source using an API key.</p>
+                      {selectedFiles.main && (
+                        <div className="text-xs text-green-600 bg-green-50 p-2 rounded">
+                          📁 Selected: {selectedFiles.main.name} ({(selectedFiles.main.size / 1024).toFixed(1)} KB)
+                        </div>
+                      )}
+                      <p className="text-xs text-gray-500">JSON file containing IRNs, ASINs, and peer relationships.</p>
                     </div>
+
+                    {/* Customer Reviews File */}
+                    <div className="grid gap-2">
+                      <Label htmlFor="reviews-file" className="text-sm font-medium">
+                        ⭐ Customer Reviews File
+                      </Label>
+                      <Input
+                        id="reviews-file"
+                        type="file"
+                        accept=".json,.csv,.xlsx,.xls"
+                        onChange={(e) => handleFileChange("customerReviews", e)}
+                        className="text-sm"
+                      />
+                      {selectedFiles.customerReviews && (
+                        <div className="text-xs text-green-600 bg-green-50 p-2 rounded">
+                          📁 Selected: {selectedFiles.customerReviews.name} (
+                          {(selectedFiles.customerReviews.size / 1024).toFixed(1)} KB)
+                        </div>
+                      )}
+                      <p className="text-xs text-gray-500">
+                        Customer reviews file with ratings data (CSV/JSON/Excel formats supported)
+                      </p>
+                    </div>
+
+                    {/* Amazon ASINs File */}
+                    <div className="grid gap-2">
+                      <Label htmlFor="asins-file" className="text-sm font-medium">
+                        💰 Amazon ASINs File (APB data)
+                      </Label>
+                      <Input
+                        id="asins-file"
+                        type="file"
+                        accept=".json,.csv,.xlsx,.xls"
+                        onChange={(e) => handleFileChange("amazonAsins", e)}
+                        className="text-sm"
+                      />
+                      {selectedFiles.amazonAsins && (
+                        <div className="text-xs text-green-600 bg-green-50 p-2 rounded">
+                          📁 Selected: {selectedFiles.amazonAsins.name} (
+                          {(selectedFiles.amazonAsins.size / 1024).toFixed(1)} KB)
+                        </div>
+                      )}
+                      <p className="text-xs text-gray-500">Amazon ASINs file with data fields (pricing, etc.)</p>
+                    </div>
+
+                    {/* Top of Search File */}
+                    <div className="grid gap-2">
+                      <Label htmlFor="tos-file" className="text-sm font-medium">
+                        🔍 Top of Search File
+                      </Label>
+                      <Input
+                        id="tos-file"
+                        type="file"
+                        accept=".json,.csv,.xlsx,.xls"
+                        onChange={(e) => handleFileChange("topOfSearch", e)}
+                        className="text-sm"
+                      />
+                      {selectedFiles.topOfSearch && (
+                        <div className="text-xs text-green-600 bg-green-50 p-2 rounded">
+                          📁 Selected: {selectedFiles.topOfSearch.name} (
+                          {(selectedFiles.topOfSearch.size / 1024).toFixed(1)} KB)
+                        </div>
+                      )}
+                      <p className="text-xs text-gray-500">Top of Search data file with search ranking/position data</p>
+                    </div>
+
                     <div className="relative">
                       <div className="absolute inset-0 flex items-center">
                         <span className="w-full border-t border-gray-300" />
@@ -702,36 +1057,44 @@ export default function ProductInsightsDashboard() {
                         <span className="bg-white px-2 text-gray-500">Or</span>
                       </div>
                     </div>
+
+                    {/* API Integration */}
                     <div className="grid gap-2">
-                      <Label htmlFor="file">Upload Excel File</Label>
-                      <div className="flex items-center gap-2">
-                        <Input
-                          id="file"
-                          type="file"
-                          accept=".xlsx,.xls,.csv"
-                          onChange={handleFileChange}
-                          className="flex-1"
-                        />
-                      </div>
-                      <p className="text-sm text-gray-500">
-                        Upload an Excel file with customer reviews and product data.
-                      </p>
+                      <Label htmlFor="api-key" className="text-sm font-medium">
+                        🔗 API Key
+                      </Label>
+                      <Input
+                        id="api-key"
+                        placeholder="Enter your API key"
+                        value={apiKey}
+                        onChange={(e) => setApiKey(e.target.value)}
+                        className="text-sm"
+                      />
+                      <p className="text-xs text-gray-500">Connect to your data source using an API key.</p>
                     </div>
                   </div>
                   <DialogFooter>
                     <Button variant="outline" onClick={() => setIsIntegrationDialogOpen(false)}>
                       Cancel
                     </Button>
-                    <Button onClick={handleIntegrationSubmit} disabled={isLoading}>
+                    <Button
+                      onClick={handleIntegrationSubmit}
+                      disabled={isLoading || (!Object.values(selectedFiles).some((f) => f) && !apiKey)}
+                      className="min-w-[120px]"
+                    >
                       {isLoading ? (
                         <>
-                          <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                          <span className="mr-2 animate-spin">⟳</span>
                           Processing...
                         </>
                       ) : (
                         <>
-                          <Upload className="mr-2 h-4 w-4" />
-                          Connect
+                          <span className="mr-2">📤</span>
+                          {Object.values(selectedFiles).some((f) => f)
+                            ? `Upload ${Object.values(selectedFiles).filter((f) => f).length} File(s)`
+                            : apiKey
+                              ? "Connect API"
+                              : "Select Files"}
                         </>
                       )}
                     </Button>
@@ -739,7 +1102,7 @@ export default function ProductInsightsDashboard() {
                 </DialogContent>
               </Dialog>
               <Button>
-                <Target className="h-4 w-4 mr-2" />
+                <span className="mr-2">🎯</span>
                 New Analysis
               </Button>
             </div>
@@ -752,60 +1115,142 @@ export default function ProductInsightsDashboard() {
         <Card className="mb-8">
           <CardHeader>
             <CardTitle className="flex items-center">
-              <Search className="h-5 w-5 mr-2" />
+              <span className="mr-2">🔍</span>
               Analysis Configuration
             </CardTitle>
             <CardDescription>Select products and configure analysis parameters</CardDescription>
           </CardHeader>
           <CardContent>
+            {/* File Upload Success Notification */}
+            {(dataSource === "file" || Object.values(fileStatus).some((status) => status === "loaded")) && (
+              <div className="mb-4 p-3 bg-green-50 rounded-lg border border-green-200">
+                <div className="flex items-center text-green-700">
+                  <span className="mr-2">✅</span>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium">Data files loaded successfully</p>
+                    <div className="text-xs text-green-600 mt-1 space-y-1">
+                      {dataSource === "file" && (
+                        <div>
+                          • Product data: {productData.irns.length} IRNs, {productData.asins.length} ASINs
+                        </div>
+                      )}
+                      {fileStatus.customerReviews === "loaded" && (
+                        <div>• Customer reviews: {Object.keys(metricsData.customerReviews).length} ASINs</div>
+                      )}
+                      {fileStatus.amazonAsins === "loaded" && (
+                        <div>• Amazon ASINs: {Object.keys(metricsData.amazonAsins).length} ASINs</div>
+                      )}
+                      {fileStatus.topOfSearch === "loaded" && (
+                        <div>• Top of Search: {Object.keys(metricsData.topOfSearch).length} ASINs</div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+              {/* IRN Selection */}
+              <Select value={selectedIRN} onValueChange={handleIRNChange}>
                 <SelectTrigger>
-                  <SelectValue placeholder="IRN" />
+                  <SelectValue placeholder="Select IRN (Product Category)" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="audio">Audio</SelectItem>
-                  <SelectItem value="wearables">Wearables</SelectItem>
-                  <SelectItem value="smart-home">Smart Home</SelectItem>
-                  {/* **Edit Here:** Add more categories by copying <SelectItem> tags. */}
+                  <SelectItem value="all">All IRNs</SelectItem>
+                  {productData.irns.length > 0 ? (
+                    productData.irns.map((irn) => (
+                      <SelectItem key={irn.id} value={irn.id}>
+                        {irn.name}
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <SelectItem value="no-data" disabled>
+                      No IRNs available
+                    </SelectItem>
+                  )}
                 </SelectContent>
               </Select>
 
-              <Select value={priorityFilter} onValueChange={setPriorityFilter}>
+              {/* ASIN Selection */}
+              <Select value={selectedASIN} onValueChange={handleASINChange}>
                 <SelectTrigger>
-                  <SelectValue placeholder="ASIN" />
+                  <SelectValue placeholder="Select ASIN" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All ASINs</SelectItem>
-                  <SelectItem value="B08XYZ123">B08XYZ123</SelectItem>
-                  <SelectItem value="B09ABC456">B09ABC456</SelectItem>
-                  <SelectItem value="B09DEF789">B09DEF789</SelectItem>
-                  {/* **Edit Here:** Add more ASINs from mockProducts. */}
+                  {filteredASINs.length > 0 ? (
+                    filteredASINs.map((asin) => (
+                      <SelectItem key={asin.id} value={asin.id}>
+                        {asin.id}
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <SelectItem value="no-data" disabled>
+                      {selectedIRN !== "all" ? "No ASINs in selected IRN" : "No ASINs available"}
+                    </SelectItem>
+                  )}
                 </SelectContent>
               </Select>
 
+              {/* Peer Selection */}
               <Select value={selectedPeers} onValueChange={setSelectedPeers}>
                 <SelectTrigger>
                   <SelectValue placeholder="Peers: CMT/Wide/Narrow" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="all">Select Peer Group</SelectItem>
                   <SelectItem value="cmt">CMT</SelectItem>
                   <SelectItem value="wide">Wide</SelectItem>
                   <SelectItem value="narrow">Narrow</SelectItem>
-                  {/* **Edit Here:** Add more peer groups. */}
                 </SelectContent>
               </Select>
 
               <div className="flex gap-2">
-                <Button className="flex-1">
-                  <BarChart3 className="h-4 w-4 mr-2" />
+                <Button className="flex-1" onClick={runAnalysis}>
+                  <span className="mr-2">📊</span>
                   Run Analysis
                 </Button>
                 <Button variant="outline" size="icon" onClick={resetFilters} title="Reset filters">
-                  <RefreshCw className="h-4 w-4" />
+                  <span>🔄</span>
                 </Button>
               </div>
             </div>
+
+            {/* Filter Summary */}
+            {(selectedIRN && selectedIRN !== "all") ||
+            (selectedASIN && selectedASIN !== "all") ||
+            (selectedPeers && selectedPeers !== "all") ? (
+              <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                <div className="text-sm">
+                  <span className="font-medium text-blue-800">Active Filters:</span>
+                  <div className="mt-1 space-y-1">
+                    {selectedIRN && selectedIRN !== "all" && (
+                      <div className="text-blue-700">
+                        <span className="font-medium">IRN:</span> {selectedIRNInfo?.name}
+                        {selectedASIN === "all" && (
+                          <span className="text-blue-600 ml-2">({filteredASINs.length} ASINs included)</span>
+                        )}
+                      </div>
+                    )}
+                    {selectedASIN && selectedASIN !== "all" && (
+                      <div className="text-blue-700">
+                        <span className="font-medium">ASIN:</span> {selectedASIN}
+                      </div>
+                    )}
+                    {selectedPeers && selectedPeers !== "all" && (
+                      <div className="text-blue-700">
+                        <span className="font-medium">Peer Group:</span> {selectedPeers.toUpperCase()}
+                      </div>
+                    )}
+                    {selectedASIN && selectedASIN !== "all" && (
+                      <div className="text-blue-600">
+                        <span className="font-medium">Available Peers:</span> {getAvailablePeers().length}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ) : null}
           </CardContent>
         </Card>
 
@@ -816,13 +1261,17 @@ export default function ProductInsightsDashboard() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">Avg Star Ratings</p>
-                  <p className="text-2xl font-bold text-green-600">4.3</p>
+                  <p className="text-2xl font-bold text-green-600">{realMetrics.avgRating.toFixed(1)}</p>
                 </div>
                 <div className="h-12 w-12 bg-green-100 rounded-lg flex items-center justify-center">
-                  <ThumbsUp className="h-6 w-6 text-green-600" />
+                  <span className="text-green-600 text-xl">👍</span>
                 </div>
               </div>
-              <p className="text-xs text-gray-500 mt-2">↗ 12% from last analysis</p>
+              <p className="text-xs text-gray-500 mt-2">
+                {fileStatus.customerReviews === "loaded"
+                  ? `From ${Object.keys(metricsData.customerReviews).length} ASINs`
+                  : "↗ vs 4.5 across 15 peers"}
+              </p>
             </CardContent>
           </Card>
 
@@ -830,14 +1279,18 @@ export default function ProductInsightsDashboard() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Reviews Analyzed</p>
-                  <p className="text-2xl font-bold text-blue-600">24,567</p>
+                  <p className="text-sm font-medium text-gray-600">ASP</p>
+                  <p className="text-2xl font-bold text-blue-600">${realMetrics.avgASP.toFixed(2)}</p>
                 </div>
                 <div className="h-12 w-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                  <MessageSquare className="h-6 w-6 text-blue-600" />
+                  <span className="text-blue-600 text-xl">💬</span>
                 </div>
               </div>
-              <p className="text-xs text-gray-500 mt-2">Across 8 competitor products</p>
+              <p className="text-xs text-gray-500 mt-2">
+                {fileStatus.amazonAsins === "loaded"
+                  ? `From ${Object.keys(metricsData.amazonAsins).length} ASINs`
+                  : "vs $21.5 across 9 Peers"}
+              </p>
             </CardContent>
           </Card>
 
@@ -845,14 +1298,18 @@ export default function ProductInsightsDashboard() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Feature Gaps</p>
-                  <p className="text-2xl font-bold text-red-600">7</p>
+                  <p className="text-sm font-medium text-gray-600">Top Of Search</p>
+                  <p className="text-2xl font-bold text-red-600">{realMetrics.avgTOS.toFixed(0)}</p>
                 </div>
                 <div className="h-12 w-12 bg-red-100 rounded-lg flex items-center justify-center">
-                  <AlertTriangle className="h-6 w-6 text-red-600" />
+                  <span className="text-red-600 text-xl">⚠️</span>
                 </div>
               </div>
-              <p className="text-xs text-gray-500 mt-2">High-impact opportunities</p>
+              <p className="text-xs text-gray-500 mt-2">
+                {fileStatus.topOfSearch === "loaded"
+                  ? `From ${Object.keys(metricsData.topOfSearch).length} ASINs`
+                  : "vs 10 TOS ASINs by Anker"}
+              </p>
             </CardContent>
           </Card>
 
@@ -860,24 +1317,23 @@ export default function ProductInsightsDashboard() {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Potential iGMS</p>
+                  <p className="text-sm font-medium text-gray-600">Potential iOPS</p>
                   <p className="text-2xl font-bold text-green-600">$12.4M</p>
                 </div>
                 <div className="h-12 w-12 bg-green-100 rounded-lg flex items-center justify-center">
-                  <DollarSign className="h-6 w-6 text-green-600" />
+                  <span className="text-green-600 text-xl">💰</span>
                 </div>
               </div>
               <p className="text-xs text-gray-500 mt-2">From 7 feature additions</p>
             </CardContent>
           </Card>
-          {/* **Edit Here:** Add more metric cards by copying this structure and updating values/icons. */}
         </div>
 
         {/* Main Content Tabs */}
         <Tabs defaultValue="recommendations" className="space-y-6">
           <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="recommendations">Feature Recommendations</TabsTrigger>
-            <TabsTrigger value="peer-comparison">Peer Comparison</TabsTrigger>
+            <TabsTrigger value="peer-comparison">Peer Comparison (Output)</TabsTrigger>
             <TabsTrigger value="sentiment">Sentiment Analysis</TabsTrigger>
             <TabsTrigger value="cost-benefit">Cost-Benefit Analysis</TabsTrigger>
             <TabsTrigger value="voice-customer">Voice of Customer</TabsTrigger>
@@ -888,10 +1344,18 @@ export default function ProductInsightsDashboard() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center">
-                  <Lightbulb className="h-5 w-5 mr-2" />
+                  <span className="mr-2">💡</span>
                   AI-Powered Feature Recommendations
                 </CardTitle>
-                <CardDescription>Actionable insights based on customer feedback analysis</CardDescription>
+                <CardDescription>
+                  Based on analysis of{" "}
+                  {selectedIRN && selectedIRN !== "all" ? `${selectedIRNInfo?.name}` : "all products"}
+                  {selectedASIN && selectedASIN !== "all"
+                    ? ` (ASIN: ${selectedASIN})`
+                    : selectedIRN && selectedIRN !== "all"
+                      ? ` (${filteredASINs.length} ASINs)`
+                      : ""}
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
@@ -906,7 +1370,7 @@ export default function ProductInsightsDashboard() {
                           </div>
                         </div>
                         <div className="flex items-center space-x-2">
-                          <Badge className={getPriorityColor(rec.priority)}>{rec.priority} priority</Badge>
+                          <Badge className={getPriorityColor(rec.priority)}>{rec.priority}</Badge>
                           <Badge variant="outline">{rec.confidence}% confidence</Badge>
                         </div>
                       </div>
@@ -917,8 +1381,8 @@ export default function ProductInsightsDashboard() {
                           <p className="text-lg font-bold text-green-600">$3.5M/year</p>
                         </div>
                         <div className="text-center p-3 bg-gray-50 rounded-lg">
-                          <p className="text-sm text-gray-600">Mentions</p>
-                          <p className="text-lg font-bold text-blue-600">{rec.mentions.toLocaleString()}</p>
+                          <p className="text-sm text-gray-600">Peers adoption</p>
+                          <p className="text-lg font-bold text-blue-600">{rec.mentions}</p>
                         </div>
                         <div className="text-center p-3 bg-gray-50 rounded-lg">
                           <p className="text-sm text-gray-600">Est. Cost</p>
@@ -926,17 +1390,13 @@ export default function ProductInsightsDashboard() {
                         </div>
                         <div className="text-center p-3 bg-gray-50 rounded-lg">
                           <p className="text-sm text-gray-600">ROI</p>
-                          <p
-                            className={`text-lg font-bold ${rec.impact === "high" ? "text-green-600" : "text-yellow-600"}`}
-                          >
-                            {rec.impact}
-                          </p>
+                          <p className="text-lg font-bold text-green-600">{rec.impact}</p>
                         </div>
                       </div>
 
                       <div className="bg-blue-50 border-l-4 border-blue-400 p-4 mb-4">
                         <div className="flex items-start">
-                          <MessageSquare className="h-5 w-5 text-blue-400 mt-0.5 mr-3" />
+                          <span className="text-blue-400 mr-3 text-lg">💬</span>
                           <div>
                             <p className="text-sm font-medium text-blue-800">Customer Voice</p>
                             <p className="text-sm text-blue-700 italic">"{rec.customerQuote}"</p>
@@ -946,16 +1406,16 @@ export default function ProductInsightsDashboard() {
 
                       <div className="flex justify-between items-center">
                         <Button variant="outline" size="sm">
-                          <Eye className="h-4 w-4 mr-2" />
+                          <span className="mr-2">👁️</span>
                           View Details
                         </Button>
                         <div className="flex space-x-2">
                           <Button size="sm" variant="outline" className="text-red-600 border-red-200 hover:bg-red-50">
-                            <XCircle className="h-4 w-4 mr-2" />
+                            <span className="mr-2">❌</span>
                             Reject
                           </Button>
                           <Button size="sm" className="bg-green-600 hover:bg-green-700">
-                            <CheckCircle className="h-4 w-4 mr-2" />
+                            <span className="mr-2">✅</span>
                             Approve
                           </Button>
                         </div>
@@ -967,108 +1427,106 @@ export default function ProductInsightsDashboard() {
             </Card>
           </TabsContent>
 
-          {/* Peer Comparison Tab */}
+          {/* Other tabs abbreviated for space */}
           <TabsContent value="peer-comparison" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center">
-                  <BarChart className="h-5 w-5 mr-2" />
-                  Competitive Feature Analysis
-                </CardTitle>
-                <CardDescription>Compare your product features against top competitors in the market</CardDescription>
-                <div className="pt-4">
-                  <Label htmlFor="peer-filter" className="text-sm font-medium mb-2 block">
-                    Filter by Peer Group
-                  </Label>
-                  <Select value={selectedPeerFilter} onValueChange={setSelectedPeerFilter}>
-                    <SelectTrigger className="w-full md:w-64">
-                      <SelectValue placeholder="All Peer Groups" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Peer Groups</SelectItem>
-                      <SelectItem value="cmts">CMTs</SelectItem>
-                      <SelectItem value="wide">Wide Peers</SelectItem>
-                      <SelectItem value="narrow">Narrow Peers</SelectItem>
-                      {/* **Edit Here:** Add more peer group options. */}
-                    </SelectContent>
-                  </Select>
-                </div>
+                <CardTitle>Peer Comparison Analysis</CardTitle>
+                <CardDescription>
+                  Feature adoption rates across peer groups - comparing our products against competitors
+                  {selectedASIN && selectedASIN !== "all"
+                    ? ` (ASIN: ${selectedASIN})`
+                    : selectedIRN && selectedIRN !== "all"
+                      ? ` (${filteredASINs.length} ASINs)`
+                      : ""}
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="overflow-x-auto">
-                  <table className="w-full">
+                  <table className="w-full border-collapse">
                     <thead>
-                      <tr className="border-b">
-                        <th className="text-left p-3 bg-gray-50">Feature</th>
-                        <th className="text-center p-3 bg-gray-50">Our Product</th>
-                        <th className="text-center p-3 bg-gray-50">
-                          {selectedPeers ? `${selectedPeers.toUpperCase()} Peers` : "All Peers"}
-                        </th>
-                        <th className="text-center p-3 bg-gray-50">Customer Demand</th>
-                        <th className="text-center p-3 bg-gray-50">Quality Score</th>
-                        <th className="text-center p-3 bg-gray-50">Action</th>
+                      <tr className="border-b-2 border-gray-200">
+                        <th className="text-left p-4 font-semibold">Feature</th>
+                        <th className="text-center p-4 font-semibold">Our Product</th>
+                        <th className="text-center p-4 font-semibold">CMT Peers</th>
+                        <th className="text-center p-4 font-semibold">Wide Peers</th>
+                        <th className="text-center p-4 font-semibold">Narrow Peers</th>
+                        <th className="text-center p-4 font-semibold">ALL Peers</th>
+                        <th className="text-center p-4 font-semibold">Gap Analysis</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {mockPeerComparison.map((item, index) => {
-                        // Calculate peer adoption percentage based on selected peer type
-                        const peerType = selectedPeers || "cmt"
-                        const peerData = item.peers[peerType as keyof typeof item.peers] || []
-                        const adoptionRate = peerData.filter((peer) => peer.has).length / peerData.length
-
+                      {mockFeatureRecommendations.map((rec) => {
+                        // Calculate peer adoption rates
+                        const ourHasFeature = rec.type !== "add" // We have it if we're not adding it
+                        const cmtAdoption = rec.feature === "Active Noise Cancellation" ? "100%" : 
+                                          rec.feature === "Wireless Charging Case" ? "67%" :
+                                          rec.feature === "Touch Controls" ? "83%" : "33%"
+                        const wideAdoption = rec.feature === "Active Noise Cancellation" ? "67%" :
+                                           rec.feature === "Wireless Charging Case" ? "0%" :
+                                           rec.feature === "Touch Controls" ? "67%" : "33%"
+                        const narrowAdoption = rec.feature === "Active Noise Cancellation" ? "67%" :
+                                             rec.feature === "Wireless Charging Case" ? "33%" :
+                                             rec.feature === "Touch Controls" ? "100%" : "0%"
+                        
+                        // ALL Peers adoption should match the "mentions" from Feature Recommendations
+                        const allPeersAdoption = typeof rec.mentions === 'string' && rec.mentions.includes('%') 
+                          ? rec.mentions 
+                          : `${Math.round((parseInt(rec.mentions) / 20))}%` // Convert mentions count to percentage
+                        
+                        const gapExists = (rec.type === "add" && parseFloat(allPeersAdoption) > 50) || 
+                                        (rec.type === "remove" && parseFloat(allPeersAdoption) < 30)
+                        
                         return (
-                          <tr key={index} className="border-b hover:bg-gray-50">
-                            <td className="p-3 font-medium">{item.feature}</td>
-                            <td className="p-3 text-center">
-                              {item.ourProduct ? (
-                                <CheckCircle className="h-5 w-5 text-green-600 mx-auto" />
-                              ) : (
-                                <XCircle className="h-5 w-5 text-red-600 mx-auto" />
-                              )}
-                            </td>
-                            <td className="p-3">
-                              <div className="flex flex-col items-center">
-                                <Progress value={adoptionRate * 100} className="w-24 mb-1" />
-                                <span className="text-xs font-medium">{Math.round(adoptionRate * 100)}% adoption</span>
+                          <tr key={rec.id} className="border-b border-gray-100 hover:bg-gray-50">
+                            <td className="p-4">
+                              <div className="flex items-center space-x-2">
+                                {getTypeIcon(rec.type)}
+                                <span className="font-medium">{rec.feature}</span>
                               </div>
                             </td>
-                            <td className="p-3 text-center">
-                              <Badge
-                                variant="outline"
-                                className={
-                                  item.customerDemand === "high"
-                                    ? "bg-green-50 text-green-700 border-green-200"
-                                    : "bg-yellow-50 text-yellow-700 border-yellow-200"
-                                }
-                              >
-                                {item.customerDemand}
+                            <td className="p-4 text-center">
+                              <div className="flex justify-center">
+                                {ourHasFeature ? (
+                                  <span className="text-green-600 text-xl">✅</span>
+                                ) : (
+                                  <span className="text-red-600 text-xl">❌</span>
+                                )}
+                              </div>
+                            </td>
+                            <td className="p-4 text-center">
+                              <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                                {cmtAdoption}
                               </Badge>
                             </td>
-                            <td className="p-3">
-                              <div className="flex flex-col items-center">
-                                <Progress value={item.sentiment * 100} className="w-24 mb-1" />
-                                <span className={`text-xs font-medium ${getSentimentColor(item.sentiment)}`}>
-                                  {(item.sentiment * 100).toFixed(0)}%
-                                </span>
-                              </div>
+                            <td className="p-4 text-center">
+                              <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">
+                                {wideAdoption}
+                              </Badge>
                             </td>
-                            <td className="p-3 text-center">
-                              {!item.ourProduct && item.customerDemand === "high" && adoptionRate > 0.5 ? (
-                                <Button size="sm" className="bg-green-600 hover:bg-green-700">
-                                  <CheckCircle className="h-4 w-4 mr-1" /> Add Feature
-                                </Button>
-                              ) : item.ourProduct && adoptionRate < 0.3 && item.customerDemand !== "high" ? (
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  className="text-red-600 border-red-200 hover:bg-red-50"
-                                >
-                                  <XCircle className="h-4 w-4 mr-1" /> Consider Removing
-                                </Button>
+                            <td className="p-4 text-center">
+                              <Badge variant="outline" className="bg-orange-50 text-orange-700 border-orange-200">
+                                {narrowAdoption}
+                              </Badge>
+                            </td>
+                            <td className="p-4 text-center">
+                              <Badge variant="outline" className="bg-gray-50 text-gray-700 border-gray-300 font-bold">
+                                {allPeersAdoption}
+                              </Badge>
+                            </td>
+                            <td className="p-4 text-center">
+                              {gapExists ? (
+                                <div className="flex items-center justify-center space-x-1">
+                                  <span className="text-red-600 text-lg">⚠️</span>
+                                  <span className="text-sm font-medium text-red-600">
+                                    {rec.type === "add" ? "Behind" : "Ahead"}
+                                  </span>
+                                </div>
                               ) : (
-                                <Button size="sm" variant="outline">
-                                  <Eye className="h-4 w-4 mr-1" /> Review
-                                </Button>
+                                <div className="flex items-center justify-center space-x-1">
+                                  <span className="text-green-600 text-lg">✅</span>
+                                  <span className="text-sm font-medium text-green-600">Aligned</span>
+                                </div>
                               )}
                             </td>
                           </tr>
@@ -1077,23 +1535,75 @@ export default function ProductInsightsDashboard() {
                     </tbody>
                   </table>
                 </div>
-              </CardContent>
-              <CardFooter className="bg-gray-50 border-t">
-                <div className="w-full flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                  <div className="text-sm text-gray-500">
-                    <span className="font-medium">Peer Groups:</span> CMT (Category Market Top), Wide (Broader Market),
-                    Narrow (Direct Competitors)
-                  </div>
-                  <Button variant="outline" size="sm">
-                    <FileSpreadsheet className="h-4 w-4 mr-2" />
-                    Export Comparison
-                  </Button>
+
+                {/* Summary Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
+                  <Card>
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-gray-600">Features Behind Peers</p>
+                          <p className="text-2xl font-bold text-red-600">2</p>
+                        </div>
+                        <span className="text-red-600 text-2xl">⚠️</span>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-1">Require immediate attention</p>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-gray-600">Features Ahead of Peers</p>
+                          <p className="text-2xl font-bold text-green-600">1</p>
+                        </div>
+                        <span className="text-green-600 text-2xl">🏆</span>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-1">Competitive advantages</p>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-gray-600">Market Aligned Features</p>
+                          <p className="text-2xl font-bold text-blue-600">1</p>
+                        </div>
+                        <span className="text-blue-600 text-2xl">🎯</span>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-1">Well positioned</p>
+                    </CardContent>
+                  </Card>
                 </div>
-              </CardFooter>
+
+                {/* Legend */}
+                <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+                  <h4 className="font-medium text-gray-900 mb-3">Legend</h4>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                    <div className="flex items-center space-x-2">
+                      <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">CMT</Badge>
+                      <span className="text-gray-600">Close Match Targets</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">Wide</Badge>
+                      <span className="text-gray-600">Wide Peer Group</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Badge variant="outline" className="bg-orange-50 text-orange-700 border-orange-200">Narrow</Badge>
+                      <span className="text-gray-600">Narrow Peer Group</span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Badge variant="outline" className="bg-gray-50 text-gray-700 border-gray-300 font-bold">ALL</Badge>
+                      <span className="text-gray-600">All Peers Combined</span>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
             </Card>
           </TabsContent>
 
-          {/* Sentiment Analysis Tab */}
           <TabsContent value="sentiment" className="space-y-6">
             <Card>
               <CardHeader>
@@ -1113,7 +1623,6 @@ export default function ProductInsightsDashboard() {
                       <SelectItem value="cmts">CMTs</SelectItem>
                       <SelectItem value="wide-peers">Wide Peers</SelectItem>
                       <SelectItem value="narrow-peers">Narrow Peers</SelectItem>
-                      {/* **Edit Here:** Add more source options. */}
                     </SelectContent>
                   </Select>
                 </div>
@@ -1152,9 +1661,9 @@ export default function ProductInsightsDashboard() {
 
               <Card>
                 <CardHeader>
-                  <CardTitle>Feature Trends Over Time</CardTitle>
+                  <CardTitle>Customer Mention Trends Over Time</CardTitle>
                   <CardDescription>
-                    Feature mention trends by month
+                    Count of customers mentioning features by month
                     {selectedSentimentFilter !== "all" && (
                       <span className="ml-2 text-blue-600">
                         (Filtered by: {selectedSentimentFilter.replace("-", " ").toUpperCase()})
@@ -1163,13 +1672,12 @@ export default function ProductInsightsDashboard() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <SentimentTrendChart />
+                  <CustomerMentionChart />
                 </CardContent>
               </Card>
             </div>
           </TabsContent>
 
-          {/* Cost-Benefit Analysis Tab */}
           <TabsContent value="cost-benefit" className="space-y-6">
             <Card>
               <CardHeader>
@@ -1183,7 +1691,7 @@ export default function ProductInsightsDashboard() {
                       <tr className="border-b">
                         <th className="text-left p-3">Feature</th>
                         <th className="text-left p-3">iPCOGs/Year</th>
-                        <th className="text-left p-3">iGMS/Year</th>
+                        <th className="text-left p-3">iOPS/Year</th>
                         <th className="text-left p-3">ROI</th>
                         <th className="text-left p-3">Confidence Level</th>
                       </tr>
@@ -1212,34 +1720,14 @@ export default function ProductInsightsDashboard() {
             </Card>
           </TabsContent>
 
-          {/* Voice of Customer Tab */}
           <TabsContent value="voice-customer" className="space-y-6">
             <Card>
               <CardHeader>
                 <CardTitle>Voice of Customer Insights</CardTitle>
-                <CardDescription>Direct customer feedback and quotes filtered by product features</CardDescription>
+                <CardDescription>Direct customer feedback filtered by your selections</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                  <div>
-                    <Label htmlFor="feature-filter" className="text-sm font-medium mb-2 block">
-                      Filter by Feature
-                    </Label>
-                    <Select value={selectedFeatureFilter} onValueChange={setSelectedFeatureFilter}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="All Features" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Features</SelectItem>
-                        {Object.keys(mockCustomerReviewsByFeature).map((feature) => (
-                          <SelectItem key={feature} value={feature}>
-                            {feature}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
                   <div>
                     <Label htmlFor="source-filter" className="text-sm font-medium mb-2 block">
                       Filter by Source
@@ -1254,135 +1742,109 @@ export default function ProductInsightsDashboard() {
                         <SelectItem value="cmts">CMTs</SelectItem>
                         <SelectItem value="wide-peers">Wide Peers</SelectItem>
                         <SelectItem value="narrow-peers">Narrow Peers</SelectItem>
-                        {/* **Edit Here:** Add more source options. */}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="irn-filter" className="text-sm font-medium mb-2 block">
+                      Filter by IRN
+                    </Label>
+                    <Select value={selectedIRN} onValueChange={setSelectedIRN}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="All IRNs" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All IRNs</SelectItem>
+                        {productData.irns.length > 0 ? (
+                          productData.irns.map((irn) => (
+                            <SelectItem key={irn.id} value={irn.id}>
+                              {irn.name}
+                            </SelectItem>
+                          ))
+                        ) : (
+                          <SelectItem value="no-data" disabled>
+                            No IRNs available
+                          </SelectItem>
+                        )}
                       </SelectContent>
                     </Select>
                   </div>
                 </div>
 
-                {selectedFeatureFilter && selectedFeatureFilter !== "all" ? (
-                  <div className="space-y-6">
-                    {/* Search Terms Section */}
-                    <Card className="bg-blue-50 border-blue-200">
-                      <CardHeader className="pb-3">
-                        <CardTitle className="text-lg text-blue-800">
-                          Search Terms for "{selectedFeatureFilter}"
-                        </CardTitle>
-                        <CardDescription className="text-blue-600">
-                          {mockCustomerReviewsByFeature[selectedFeatureFilter].searchTerms.length} related search terms
-                          identified
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="flex flex-wrap gap-2">
-                          {mockCustomerReviewsByFeature[selectedFeatureFilter].searchTerms.map((term, index) => (
-                            <Badge key={index} variant="outline" className="bg-white text-blue-700 border-blue-300">
-                              {term}
-                            </Badge>
-                          ))}
-                        </div>
-                      </CardContent>
-                    </Card>
-
-                    {/* Customer Reviews Section */}
-                    <Card>
-                      <CardHeader>
-                        <CardTitle className="flex items-center justify-between">
-                          <span>Customer Reviews - {selectedFeatureFilter}</span>
-                          <Badge variant="outline">
-                            {mockCustomerReviewsByFeature[selectedFeatureFilter].reviews.length} reviews
-                          </Badge>
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="space-y-4">
-                          {mockCustomerReviewsByFeature[selectedFeatureFilter].reviews.map((review) => (
-                            <div
-                              key={review.id}
-                              className={`p-4 rounded-lg border-l-4 ${
-                                review.sentiment === "positive"
-                                  ? "bg-green-50 border-green-400"
-                                  : "bg-red-50 border-red-400"
-                              }`}
-                            >
-                              <div className="flex items-start justify-between mb-2">
-                                <div className="flex items-center space-x-2">
-                                  <div className="flex">
-                                    {[...Array(5)].map((_, i) => (
-                                      <span
-                                        key={i}
-                                        className={`text-sm ${i < review.rating ? "text-yellow-400" : "text-gray-300"}`}
-                                      >
-                                        ★
-                                      </span>
-                                    ))}
-                                  </div>
-                                  {review.verified && (
-                                    <Badge variant="outline" className="text-xs">
-                                      Verified Purchase
-                                    </Badge>
-                                  )}
-                                </div>
-                                <span className="text-xs text-gray-500">{review.date}</span>
-                              </div>
-                              <p className="text-sm italic mb-2">"{review.text}"</p>
-                              <div className="flex items-center space-x-2">
-                                {review.sentiment === "positive" ? (
-                                  <ThumbsUp className="h-4 w-4 text-green-600" />
-                                ) : (
-                                  <ThumbsDown className="h-4 w-4 text-red-600" />
-                                )}
-                                <span
-                                  className={`text-xs font-medium ${
-                                    review.sentiment === "positive" ? "text-green-600" : "text-red-600"
-                                  }`}
-                                >
-                                  {review.sentiment === "positive" ? "Positive" : "Negative"} sentiment
-                                </span>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <div className="space-y-4">
-                      <h3 className="font-semibold text-green-600 flex items-center">
-                        <ThumbsUp className="h-4 w-4 mr-2" />
-                        Positive Feedback
-                      </h3>
-                      {[
-                        "Amazing sound quality, best I've heard in this price range",
-                        "Battery life is incredible, lasts all day",
-                        "Love the quick charge feature, very convenient",
-                      ].map((quote, index) => (
-                        <div key={index} className="bg-green-50 border-l-4 border-green-400 p-4">
-                          <p className="text-sm italic">"{quote}"</p>
-                          <p className="text-xs text-gray-500 mt-2">★★★★★ Verified Purchase</p>
-                        </div>
-                      ))}
-                    </div>
-
-                    <div className="space-y-4">
-                      <h3 className="font-semibold text-red-600 flex items-center">
-                        <ThumbsDown className="h-4 w-4 mr-2" />
-                        Areas for Improvement
-                      </h3>
-                      {[
-                        "Touch controls are too sensitive, constantly pausing music",
-                        "Wish they had active noise cancellation like competitors",
-                        "Case is too bulky for pocket carry",
-                      ].map((quote, index) => (
-                        <div key={index} className="bg-red-50 border-l-4 border-red-400 p-4">
-                          <p className="text-sm italic">"{quote}"</p>
-                          <p className="text-xs text-gray-500 mt-2">★★★☆☆ Verified Purchase</p>
-                        </div>
-                      ))}
+                {/* Filter Summary */}
+                {(selectedSourceFilter && selectedSourceFilter !== "all") || (selectedIRN && selectedIRN !== "all") ? (
+                  <div className="mb-6 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                    <div className="text-sm">
+                      <span className="font-medium text-blue-800">Active Filters:</span>
+                      <div className="mt-1 space-y-1">
+                        {selectedSourceFilter && selectedSourceFilter !== "all" && (
+                          <div className="text-blue-700">
+                            <span className="font-medium">Source:</span>{" "}
+                            {selectedSourceFilter.replace("-", " ").toUpperCase()}
+                          </div>
+                        )}
+                        {selectedIRN && selectedIRN !== "all" && (
+                          <div className="text-blue-700">
+                            <span className="font-medium">IRN:</span> {selectedIRNInfo?.name}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
-                )}
+                ) : null}
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <div className="space-y-4">
+                    <h3 className="font-semibold text-green-600 flex items-center">
+                      <span className="mr-2">👍</span>
+                      Positive Feedback
+                      {(selectedSourceFilter !== "all" || selectedIRN !== "all") && (
+                        <span className="ml-2 text-sm text-blue-600">
+                          (Filtered by:{" "}
+                          {selectedSourceFilter !== "all" ? selectedSourceFilter.replace("-", " ").toUpperCase() : ""}
+                          {selectedSourceFilter !== "all" && selectedIRN !== "all" ? " & " : ""}
+                          {selectedIRN !== "all" ? selectedIRNInfo?.name : ""})
+                        </span>
+                      )}
+                    </h3>
+                    {[
+                      "Amazing sound quality, best I've heard in this price range",
+                      "Battery life is incredible, lasts all day",
+                      "Love the quick charge feature, very convenient",
+                    ].map((quote, index) => (
+                      <div key={index} className="bg-green-50 border-l-4 border-green-400 p-4">
+                        <p className="text-sm italic">"{quote}"</p>
+                        <p className="text-xs text-gray-500 mt-2">★★★★★ Verified Purchase</p>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="space-y-4">
+                    <h3 className="font-semibold text-red-600 flex items-center">
+                      <span className="mr-2">👎</span>
+                      Areas for Improvement
+                      {(selectedSourceFilter !== "all" || selectedIRN !== "all") && (
+                        <span className="ml-2 text-sm text-blue-600">
+                          (Filtered by:{" "}
+                          {selectedSourceFilter !== "all" ? selectedSourceFilter.replace("-", " ").toUpperCase() : ""}
+                          {selectedSourceFilter !== "all" && selectedIRN !== "all" ? " & " : ""}
+                          {selectedIRN !== "all" ? selectedIRNInfo?.name : ""})
+                        </span>
+                      )}
+                    </h3>
+                    {[
+                      "Touch controls are too sensitive, constantly pausing music",
+                      "Wish they had active noise cancellation like competitors",
+                      "Case is too bulky for pocket carry",
+                    ].map((quote, index) => (
+                      <div key={index} className="bg-red-50 border-l-4 border-red-400 p-4">
+                        <p className="text-sm italic">"{quote}"</p>
+                        <p className="text-xs text-gray-500 mt-2">★★★☆☆ Verified Purchase</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
