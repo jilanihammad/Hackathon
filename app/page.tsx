@@ -462,7 +462,7 @@ export default function ProductInsightsDashboard() {
   // Metrics data from additional files
   const [metricsData, setMetricsData] = useState({
     customerReviews: {}, // { asinId: averageRating }
-    amazonAsins: {}, // { asinId: price/data }
+    competitorSkus: {}, // { asinId: price/data }
     topOfSearch: {}, // { asinId: ranking/percentage }
   })
 
@@ -474,7 +474,7 @@ export default function ProductInsightsDashboard() {
   const [fileStatus, setFileStatus] = useState({
     main: "none", // 'none', 'loaded', 'error'
     customerReviews: "none",
-    amazonAsins: "none",
+    competitorSkus: "none",
     topOfSearch: "none",
   })
 
@@ -488,7 +488,7 @@ export default function ProductInsightsDashboard() {
   const [selectedFiles, setSelectedFiles] = useState({
     main: null,
     customerReviews: null,
-    amazonAsins: null,
+    competitorSkus: null,
     topOfSearch: null,
   })
 
@@ -566,7 +566,7 @@ export default function ProductInsightsDashboard() {
           (h) =>
             h.toLowerCase().includes("rating") || h.toLowerCase().includes("star") || h.toLowerCase().includes("score"),
         )
-      } else if (fileType === "amazonAsins") {
+      } else if (fileType === "competitorSkus") {
         valueIndex = headers.findIndex(
           (h) =>
             h.toLowerCase().includes("price") || h.toLowerCase().includes("asp") || h.toLowerCase().includes("cost"),
@@ -645,14 +645,14 @@ export default function ProductInsightsDashboard() {
         }
       }
 
-      if (selectedFiles.amazonAsins) {
+      if (selectedFiles.competitorSkus) {
         try {
-          newMetricsData.amazonAsins = await processMetricsFile(selectedFiles.amazonAsins, "amazonAsins")
-          newFileStatus.amazonAsins = "loaded"
-          console.log(`✅ Amazon ASINs data loaded: ${Object.keys(newMetricsData.amazonAsins).length} ASINs`)
+          newMetricsData.competitorSkus = await processMetricsFile(selectedFiles.competitorSkus, "competitorSkus")
+          newFileStatus.competitorSkus = "loaded"
+          console.log(`✅ Competitor SKUs data loaded: ${Object.keys(newMetricsData.competitorSkus).length} ASINs`)
         } catch (error) {
-          newFileStatus.amazonAsins = "error"
-          console.error("Amazon ASINs file error:", error)
+          newFileStatus.competitorSkus = "error"
+          console.error("Competitor SKUs file error:", error)
         }
       }
 
@@ -683,7 +683,7 @@ export default function ProductInsightsDashboard() {
     } finally {
       setIsLoading(false)
       setIsIntegrationDialogOpen(false)
-      setSelectedFiles({ main: null, customerReviews: null, amazonAsins: null, topOfSearch: null })
+      setSelectedFiles({ main: null, customerReviews: null, competitorSkus: null, topOfSearch: null })
       setApiKey("")
     }
   }
@@ -707,9 +707,9 @@ export default function ProductInsightsDashboard() {
       }
 
       // Calculate average ASP from real data if available
-      const aspWithData = filteredASINs.filter((asin) => metricsData.amazonAsins[asin.id])
+      const aspWithData = filteredASINs.filter((asin) => metricsData.competitorSkus[asin.id])
       if (aspWithData.length > 0) {
-        const totalASP = aspWithData.reduce((sum, asin) => sum + Number.parseFloat(metricsData.amazonAsins[asin.id]), 0)
+        const totalASP = aspWithData.reduce((sum, asin) => sum + Number.parseFloat(metricsData.competitorSkus[asin.id]), 0)
         avgASP = totalASP / aspWithData.length
       }
 
@@ -921,7 +921,7 @@ export default function ProductInsightsDashboard() {
 
                   <span className="inline-flex items-center">
                     <span className="mr-1">💰</span>
-                    {fileStatus.amazonAsins === "loaded" ? (
+                    {fileStatus.competitorSkus === "loaded" ? (
                       <span className="text-green-600 font-medium">✅ ASINs</span>
                     ) : (
                       <span className="text-gray-400">Mock ASINs</span>
@@ -1007,25 +1007,25 @@ export default function ProductInsightsDashboard() {
                       </p>
                     </div>
 
-                    {/* Amazon ASINs File */}
+                    {/* Competitor SKUs File */}
                     <div className="grid gap-2">
                       <Label htmlFor="asins-file" className="text-sm font-medium">
-                        💰 Amazon ASINs File (APB data)
+                        💰 Competitor SKU Data
                       </Label>
                       <Input
                         id="asins-file"
                         type="file"
                         accept=".json,.csv,.xlsx,.xls"
-                        onChange={(e) => handleFileChange("amazonAsins", e)}
+                        onChange={(e) => handleFileChange("competitorSkus", e)}
                         className="text-sm"
                       />
-                      {selectedFiles.amazonAsins && (
+                      {selectedFiles.competitorSkus && (
                         <div className="text-xs text-green-600 bg-green-50 p-2 rounded">
-                          📁 Selected: {selectedFiles.amazonAsins.name} (
-                          {(selectedFiles.amazonAsins.size / 1024).toFixed(1)} KB)
+                          📁 Selected: {selectedFiles.competitorSkus.name} (
+                          {(selectedFiles.competitorSkus.size / 1024).toFixed(1)} KB)
                         </div>
                       )}
-                      <p className="text-xs text-gray-500">Amazon ASINs file with data fields (pricing, etc.)</p>
+                      <p className="text-xs text-gray-500">Competitor SKUs file with data fields (pricing, etc.)</p>
                     </div>
 
                     {/* Top of Search File */}
@@ -1137,8 +1137,8 @@ export default function ProductInsightsDashboard() {
                       {fileStatus.customerReviews === "loaded" && (
                         <div>• Customer reviews: {Object.keys(metricsData.customerReviews).length} ASINs</div>
                       )}
-                      {fileStatus.amazonAsins === "loaded" && (
-                        <div>• Amazon ASINs: {Object.keys(metricsData.amazonAsins).length} ASINs</div>
+                      {fileStatus.competitorSkus === "loaded" && (
+                        <div>• Competitor SKUs: {Object.keys(metricsData.competitorSkus).length} ASINs</div>
                       )}
                       {fileStatus.topOfSearch === "loaded" && (
                         <div>• Top of Search: {Object.keys(metricsData.topOfSearch).length} ASINs</div>
@@ -1287,8 +1287,8 @@ export default function ProductInsightsDashboard() {
                 </div>
               </div>
               <p className="text-xs text-gray-500 mt-2">
-                {fileStatus.amazonAsins === "loaded"
-                  ? `From ${Object.keys(metricsData.amazonAsins).length} ASINs`
+                {fileStatus.competitorSkus === "loaded"
+                  ? `From ${Object.keys(metricsData.competitorSkus).length} ASINs`
                   : "vs $21.5 across 9 Peers"}
               </p>
             </CardContent>
@@ -1619,7 +1619,7 @@ export default function ProductInsightsDashboard() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">All Sources</SelectItem>
-                      <SelectItem value="apb-asin">APB ASIN</SelectItem>
+                      <SelectItem value="competitor-sku">Competitor SKU</SelectItem>
                       <SelectItem value="cmts">CMTs</SelectItem>
                       <SelectItem value="wide-peers">Wide Peers</SelectItem>
                       <SelectItem value="narrow-peers">Narrow Peers</SelectItem>
@@ -1738,7 +1738,7 @@ export default function ProductInsightsDashboard() {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="all">All Sources</SelectItem>
-                        <SelectItem value="apb-asin">APB ASIN</SelectItem>
+                        <SelectItem value="competitor-sku">Competitor SKU</SelectItem>
                         <SelectItem value="cmts">CMTs</SelectItem>
                         <SelectItem value="wide-peers">Wide Peers</SelectItem>
                         <SelectItem value="narrow-peers">Narrow Peers</SelectItem>
